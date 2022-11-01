@@ -1,10 +1,12 @@
 import fs from "fs";
 
 const file = process.argv[2];
-const data = fs.readFileSync(file).toString().split("\n").
+const data = fs.
+    readFileSync(file).
+    toString().
+    split("\n").
     filter(x => x).
     map(x => JSON.parse(x));
-
 
 type TypeValue = string | string[];
 type Type = {
@@ -66,7 +68,7 @@ function handleArray(items: any[]): (string | string[])[] {
     const out: (string | string[])[] = [];
     for (let i = 0; i < items.length; ++i) {
         const item = items[i];
-        const type = item;
+        const type = typeof item;
         let name: string | string[] = type;
 
         if (item === null) {
@@ -78,7 +80,7 @@ function handleArray(items: any[]): (string | string[])[] {
             name = typeObject(item);
         }
 
-        if (!out.includes(name)) {
+        if (out.indexOf(name) === -1) {
             out.push(name);
         }
     }
@@ -118,21 +120,33 @@ function typeObject(obj: StringToUnknown): string {
 // TODO: My mother would even be upset
 data.forEach(x => typeObject(x));
 
-function arrayTypeToString(arr: (string | string[])[]): string {
+function arrayTypeToString(arr: (string | string[])[], current: {[key: string]: boolean} = {}, sub: boolean = false): string {
     const out: string[] = [];
     for (let i = 0; i < arr.length; ++i) {
         const value = arr[i];
-        if (typeof value === "string") {
+        if (Array.isArray(value)) {
+            const types = arrayTypeToString(value, current, true);
+            if (types) {
+                out.push(types);
+            }
+        } else if (!current[value]) {
+            current[value] = true;
             out.push(value);
-        } else {
-            out.push(arrayTypeToString(value));
         }
     }
 
     if (out.length > 1) {
         return `(${out.join(" | ")})`;
     }
-    return out[0];
+
+    if (out.length === 1) {
+        if (sub) {
+            return `${out[0]}[]`;
+        }
+        return out[0];
+    }
+
+    return "";
 }
 
 keyNameToType.forEach((v, keyName) => {
