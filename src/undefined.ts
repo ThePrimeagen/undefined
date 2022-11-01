@@ -1,12 +1,7 @@
-import fs from "fs";
+import getData from "./file";
 
 const file = process.argv[2];
-const data = fs.
-    readFileSync(file).
-    toString().
-    split("\n").
-    filter(x => x).
-    map(x => JSON.parse(x));
+const data = getData(file);
 
 type TypeValue = string | string[];
 type Type = {
