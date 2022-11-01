@@ -1,26 +1,21 @@
 import getData from "./file";
-
-const file = process.argv[2];
-const data = getData(file);
-
-type TypeValue = string | string[];
-type Type = {
-    [key: string]: TypeValue[],
-}
+import { Config, getConfig } from "./config";
+import { determineEnum, stringifyEnum, updateAllEnumReferences } from "./enum";
+import { makeName } from "./utils";
+import { Type } from "./types";
 
 const keyNameToType: Map<string, Type> = new Map();
 
 const keyNameToName: Map<string, string> = new Map();
-const baseName = "RenameMeDaddy";
 let count = 0;
 
-function getName(keyName: string): string {
+function getName(keyName: string, config: Config): string {
     const value = keyNameToName.get(keyName);
     if (value) {
         return value;
     }
 
-    const name = baseName + ++count;
+    const name = config.nameBase + ++count;
     keyNameToName.set(keyName, name);
     return name;
 }
@@ -59,7 +54,7 @@ function getObj(key: string): Type {
 }
 
 // this might be a thing?
-function handleArray(items: any[]): (string | string[])[] {
+function handleArray(items: any[], config: Config): (string | string[])[] {
     const out: (string | string[])[] = [];
     for (let i = 0; i < items.length; ++i) {
         const item = items[i];
@@ -70,9 +65,9 @@ function handleArray(items: any[]): (string | string[])[] {
             name = "null";
         } else if (Array.isArray(item)) {
             // @ts-ignore
-            name = handleArray(item);
+            name = handleArray(item, config);
         } else if (type === "object") {
-            name = typeObject(item);
+            name = typeObject(item, config);
         }
 
         if (out.indexOf(name) === -1) {
@@ -85,10 +80,10 @@ function handleArray(items: any[]): (string | string[])[] {
 
 type StringToUnknown = {[key: string]: unknown};
 //
-function typeObject(obj: StringToUnknown): string {
+function typeObject(obj: StringToUnknown, config: Config): string {
     const keys = Object.keys(obj);
     const keyName = getKeyName(obj);
-    const name = getName(keyName);
+    const name = getName(keyName, config);
     const typeObj = getObj(keyName);
 
     for (let i = 0; i < keys.length; ++i) {
@@ -103,17 +98,14 @@ function typeObject(obj: StringToUnknown): string {
         } else if (Array.isArray(value)) {
             // @ts-ignore
             // .... how do i ?
-            insertKeyValue(typeObj, k, handleArray(value));
+            insertKeyValue(typeObj, k, handleArray(value, config));
         } else {
-            insertKeyValue(typeObj, k, typeObject(value as StringToUnknown));
+            insertKeyValue(typeObj, k, typeObject(value as StringToUnknown, config));
         }
     }
 
     return name;
 }
-
-// TODO: My mother would even be upset
-data.forEach(x => typeObject(x));
 
 function arrayTypeToString(arr: (string | string[])[], current: {[key: string]: boolean} = {}, sub: boolean = false): string {
     const out: string[] = [];
@@ -144,15 +136,34 @@ function arrayTypeToString(arr: (string | string[])[], current: {[key: string]: 
     return "";
 }
 
-keyNameToType.forEach((v, keyName) => {
-    const name = getName(keyName);
-    console.log(`type ${name} = {`);
-    const keys = Object.keys(v);
-    for (let i = 0; i < keys.length; ++i) {
-        const k = keys[i];
-        const types = v[k];
+async function run() {
+    const config = await getConfig();
+    const data = getData<{[key: string]: unknown}>(config.file);
 
-        console.log(`    ${k}: ${arrayTypeToString(types)};`);
+    // TODO: My mother would even be upset
+    data.forEach(x => typeObject(x, config));
+
+    for (let i = 0; i < config.enums.length; ++i) {
+        const enumItem = config.enums[i];
+        const enumKeys = determineEnum(data, enumItem);
+        const enumName = makeName(enumItem);
+
+        console.log(stringifyEnum(enumName, enumKeys));
+        updateAllEnumReferences(keyNameToType, enumItem, enumName);
     }
-    console.log(`}`);
-});
+
+    keyNameToType.forEach((v, keyName) => {
+        const name = getName(keyName, config);
+        console.log(`type ${name} = {`);
+        const keys = Object.keys(v);
+        for (let i = 0; i < keys.length; ++i) {
+            const k = keys[i];
+            const types = v[k];
+
+            console.log(`    ${k}: ${arrayTypeToString(types)};`);
+        }
+        console.log(`}`);
+    });
+}
+
+run();
