@@ -35,8 +35,8 @@ export function stringifyEnum(name: string, keys: EnumKeys): string {
 
 export function updateAllEnumReferences(data: Map<string, Type>, keyName: string, enumName: string): void {
     data.forEach(v => {
-        if (keyName in v) {
-            v[keyName] = [enumName];
+        if (keyName in v.properties) {
+            v.properties[keyName] = [enumName];
         }
     });
 }

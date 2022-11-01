@@ -32,12 +32,13 @@ function isPrimitive(typeofValue: string): boolean {
 }
 
 function insertKeyValue(obj: Type, key: string, value: string | string[]): void {
-    if (!obj[key]) {
-        obj[key] = [];
+    let props = obj.properties[key];
+    if (!props) {
+        props = obj.properties[key] = [];
     }
 
-    if (!obj[key].includes(value)) {
-        obj[key].push(value);
+    if (Array.isArray(value) || !props.includes(value)) {
+        props.push(value);
     }
 }
 
@@ -47,7 +48,10 @@ function getObj(key: string): Type {
         return value;
     }
 
-    const typeObj = {};
+    const typeObj = {
+        unions: [],
+        properties: {},
+    };
     keyNameToType.set(key, typeObj);
 
     return typeObj;
@@ -155,10 +159,10 @@ async function run() {
     keyNameToType.forEach((v, keyName) => {
         const name = getName(keyName, config);
         console.log(`type ${name} = {`);
-        const keys = Object.keys(v);
+        const keys = Object.keys(v.properties);
         for (let i = 0; i < keys.length; ++i) {
             const k = keys[i];
-            const types = v[k];
+            const types = v.properties[k];
 
             console.log(`    ${k}: ${arrayTypeToString(types)};`);
         }
