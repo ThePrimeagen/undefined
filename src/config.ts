@@ -1,11 +1,11 @@
 import yargs from "yargs";
 
+
 type PartialConfig = {
     nameBase?: string;
     enums?: string;
     file?: string | "stdin";
     unionCount?: number;
-    unionEnabled?: boolean;
 }
 
 export type Config = {
@@ -13,7 +13,6 @@ export type Config = {
     enums: string[];
     file: string | "stdin";
     unionCount: number;
-    unionEnabled: boolean;
 }
 
 // TODO: Normalize i use command-line-arguments fro this, tried yarg, need
@@ -43,13 +42,6 @@ export async function getConfig(): Promise<Config> {
         args.unionCount = UNION_COUNT;
     }
 
-    if (("unionEnabled" in args)) {
-        // @ts-ignore
-        args.unionEnabled = +args.unionEnabled;
-    } else {
-        args.unionEnabled = false
-    }
-
     if (!("file" in args)) {
         if (process.argv[2].length < 3) {
             throw new Error("please provide a file either as the first positional argument or --file");
@@ -58,7 +50,6 @@ export async function getConfig(): Promise<Config> {
         return {
             nameBase: args.nameBase as string,
             unionCount: args.unionCount as number,
-            unionEnabled: args.unionEnabled as boolean,
             enums: args.enums as unknown as string[],
             file: String(process.argv[2]),
         };

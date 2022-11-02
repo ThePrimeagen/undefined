@@ -140,7 +140,8 @@ function combinedUnionName(n1: string, n2: string): string {
 }
 
 // TODO: This is a REALLY SHITTY version of what could be
-function attemptCombine(data: TypedData, unions: Union, ignore: string[] = []): [boolean, string[]] {
+function attemptCombine(data: TypedData, unions: Union, config: Config, ignore: string[] = []): [boolean, string[]] {
+
     const dupes = unionDupeCount(data);
     const highest2: {key: string, count: number}[] = [];
 
@@ -167,6 +168,11 @@ function attemptCombine(data: TypedData, unions: Union, ignore: string[] = []): 
     }
 
     const [
+        keyName1,
+        keyName2,
+    ] = highest2.map(x => x.key);
+
+    const [
         type0Name,
         type1Name,
     ] = highest2.map(x => unions.get(x.key)?.name as string);
@@ -176,8 +182,8 @@ function attemptCombine(data: TypedData, unions: Union, ignore: string[] = []): 
         type1,
     ] = highest2.map(x => getTypesByUnionKey(data, x.key));
 
-    const type0Map = new Map<Type, boolean>(type0.map(x => [x, true]));
-    const type1Map = new Map<Type, boolean>(type1.map(x => [x, true]));
+    const type0Map = new Map<Type, string>(type0.map(x => [x, keyName1]));
+    const type1Map = new Map<Type, string>(type1.map(x => [x, keyName2]));
 
     const common = []
     for (const t of type0Map.keys()) {
@@ -186,12 +192,13 @@ function attemptCombine(data: TypedData, unions: Union, ignore: string[] = []): 
         }
     }
 
-    if (common.length > 0) {
+    if (common.length >= config.unionCount) {
         const newName = combinedUnionName(type0Name, type1Name);
         for (let i = 0; i < common.length; ++i) {
-            common[i].unions.splice(common[i].unions.indexOf(type0Name));
-            common[i].unions.splice(common[i].unions.indexOf(type1Name));
-            common[i].unions.push(newName);
+            const u = common[i].unions;
+            u.splice(u.indexOf(keyName1), 1);
+            u.splice(u.indexOf(keyName2), 1);
+            u.push(newName);
         }
 
         unions.set(newName, {
@@ -200,9 +207,10 @@ function attemptCombine(data: TypedData, unions: Union, ignore: string[] = []): 
         });
     }
 
-    return [common.length > 0, [type0Name, type1Name]];
+    return [common.length >= config.unionCount, [type0Name, type1Name]];
 }
 
+// NOTE: Amazon hates this function
 export function unionize(data: TypedData, config: Config): Union {
     const keyCount = keyDupeCount(data);
     const unionProps = getUnionizableProperties(keyCount, config);
@@ -237,8 +245,7 @@ export function unionize(data: TypedData, config: Config): Union {
     let missCount = 0;
     let seen: string[] = [];
     do {
-        const [found, newKeys] = attemptCombine(data, unions, seen);
-
+        const [found, newKeys] = attemptCombine(data, unions, config, seen);
         if (!found) {
             seen = seen.concat(newKeys);
             missCount++;

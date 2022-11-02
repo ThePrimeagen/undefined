@@ -6,11 +6,12 @@
 import { Config } from "./config";
 import { getName } from "./utils";
 
-
 export type TypeValue = string | string[];
+
 export type TypeProperties = {
     [key: string]: TypeValue[],
 }
+
 export type Type = {
     unions: string[],
     properties: TypeProperties,

@@ -114,13 +114,8 @@ async function run() {
         updateAllEnumReferences(keyNameToType, enumItem, enumName);
     }
 
-    if (config.unionEnabled) {
-        const unions = unionize(keyNameToType, config);
-        console.log(typeToString(keyNameToType, unions, config));
-    } else {
-        console.log(typeToString(keyNameToType, new Map(), config));
-    }
-
+    const unions = unionize(keyNameToType, config);
+    console.log(typeToString(keyNameToType, unions, config));
 }
 
 run();
