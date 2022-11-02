@@ -1,25 +1,44 @@
+const jsons = [
+    {
+        bar: 22,
+        buzz: 69,
+    },
 
-const foo = {
-    bar: 22,
-    buzz: 69,
-};
+    {
+        bar: "this is a string",
+        buzz: 69,
+    },
 
-const bar = {
-    bar: "this is a string",
-    buzz: 69,
-};
+    {
+        lithium: "is my bit daddy",
+    },
 
-const other = {
-    lithium: "is my bit daddy",
-};
+    {
+        lithium: "is my bit daddy",
+        bar: "oneMoreTime"
+    },
 
-const other2 = {
-    lithium: "is my bit daddy",
-    foo,
-};
+    {
+        anotherProp: "prop",
+        bar: "anoother bar"
+    },
 
-console.log(JSON.stringify(foo));
-console.log(JSON.stringify(bar));
-console.log(JSON.stringify(other));
-console.log(JSON.stringify(other2));
+    {
+        okAgain: "prop",
+        bar: "i needed one more string only bar"
+    },
+
+    {
+        iNeededAgain: "Yes, i have a default amount of 4",
+        bar: "There we go, we are at 4 now"
+    },
+
+    {
+        lithium: "I needed a lithium data point so i can have 2 lith + bar unions",
+        bar: "There we go, we are at 4 now",
+        that: 69,
+    },
+]
+
+jsons.forEach(x => console.log(JSON.stringify(x)));
 

@@ -18,7 +18,8 @@ export type Type = {
 
 export type NamedTypeProperty = {
     name: string;
-    properties: TypeProperties;
+    properties?: TypeProperties;
+    combinedUnion?: string[];
 };
 
 export type KeyNameToType = Map<string, Type>;
@@ -54,50 +55,62 @@ function arrayTypeToString(arr: (string | string[])[], current: {[key: string]: 
     return "";
 }
 
-function unionName(name: string): string {
+export function unionName(name: string): string {
+    if (name.endsWith("Union")) {
+        return name;
+    }
     return `${name}Union`;
 }
 
-function stringUnions(type: Type, unions: Union): string {
+function stringUnions(type: Type, unions: Union, connectingAmp: boolean = true): string {
     if (type.unions.length === 0) {
         return "";
     }
 
-    return `${type.unions.map(u => unionName(unions.get(u)?.name as string)).join(" & ")} & `;
+    return `${type.unions.map(u => unionName(unions.get(u)?.name as string)).join(" & ")} ${connectingAmp ? "& " : ""}`;
 }
 
 export function typeToString(keyNameToType: KeyNameToType, unions: Union, config: Config): string {
     const out: string[] = [];
 
     for (const [_, v] of unions.entries()) {
-        const {properties, name} = v;
+        const {properties, name, combinedUnion} = v;
         const uName = unionName(name);
-        out.push(`type ${uName} = {`);
 
-        const keys = Object.keys(properties);
-        for (let i = 0; i < keys.length; ++i) {
-            const k = keys[i];
-            const types = v.properties[k];
+        if (properties) {
+            out.push(`type ${uName} = {`);
 
-            out.push(`    ${k}: ${arrayTypeToString(types)};`);
+            const keys = Object.keys(properties);
+            for (let i = 0; i < keys.length; ++i) {
+                const k = keys[i];
+                const types = properties[k];
+
+                out.push(`    ${k}: ${arrayTypeToString(types)};`);
+            }
+
+            out.push("}");
+        } else if (combinedUnion) {
+            out.push(`type ${uName} = ${combinedUnion.join(" & ")}`);
         }
-
-        out.push("}");
     }
 
     for (const [keyName, v] of keyNameToType.entries()) {
         const name = getName(keyName, config);
-        out.push(`type ${name} = ${stringUnions(v, unions)} {`);
-
         const keys = Object.keys(v.properties);
-        for (let i = 0; i < keys.length; ++i) {
-            const k = keys[i];
-            const types = v.properties[k];
+        if (keys.length === 0) {
+            out.push(`type ${name} = ${stringUnions(v, unions, false)};`);
+        } else {
+            out.push(`type ${name} = ${stringUnions(v, unions)} {`);
+            for (let i = 0; i < keys.length; ++i) {
+                const k = keys[i];
+                const types = v.properties[k];
 
-            out.push(`    ${k}: ${arrayTypeToString(types)};`);
+                out.push(`    ${k}: ${arrayTypeToString(types)};`);
+            }
+
+            out.push(`}`);
         }
 
-        out.push(`}`);
     };
 
     return out.join("\n");
