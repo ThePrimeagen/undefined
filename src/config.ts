@@ -4,15 +4,20 @@ type PartialConfig = {
     nameBase?: string;
     enums?: string;
     file?: string | "stdin";
+    unionCount?: number;
 }
 
 export type Config = {
     nameBase: string;
     enums: string[];
     file: string | "stdin";
+    unionCount: number;
 }
 
+// TODO: Normalize i use command-line-arguments fro this, tried yarg, need
+// to take more time to figure this out.
 const BASE_NAME = "BaseName";
+const UNION_COUNT = 4;
 export async function getConfig(): Promise<Config> {
     const args = await yargs(process.argv).argv as PartialConfig;
 
@@ -29,6 +34,13 @@ export async function getConfig(): Promise<Config> {
         args.nameBase = BASE_NAME;
     }
 
+    if (("unionCount" in args)) {
+        // @ts-ignore
+        args.unionCount = +args.unionCount;
+    } else {
+        args.unionCount = UNION_COUNT;
+    }
+
     if (!("file" in args)) {
         if (process.argv[2].length < 3) {
             throw new Error("please provide a file either as the first positional argument or --file");
@@ -36,6 +48,7 @@ export async function getConfig(): Promise<Config> {
 
         return {
             nameBase: args.nameBase as string,
+            unionCount: args.unionCount as number,
             enums: args.enums as unknown as string[],
             file: String(process.argv[2]),
         };

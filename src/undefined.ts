@@ -1,24 +1,10 @@
 import getData from "./file";
 import { Config, getConfig } from "./config";
 import { determineEnum, stringifyEnum, updateAllEnumReferences } from "./enum";
-import { makeName } from "./utils";
+import { getName, makeName } from "./utils";
 import { Type } from "./types";
 
 const keyNameToType: Map<string, Type> = new Map();
-
-const keyNameToName: Map<string, string> = new Map();
-let count = 0;
-
-function getName(keyName: string, config: Config): string {
-    const value = keyNameToName.get(keyName);
-    if (value) {
-        return value;
-    }
-
-    const name = config.nameBase + ++count;
-    keyNameToName.set(keyName, name);
-    return name;
-}
 
 function getKeyName(obj: object): string {
     const keys = Object.keys(obj); // MOST IMPORTANT

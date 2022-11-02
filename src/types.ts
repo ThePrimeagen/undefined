@@ -4,10 +4,13 @@
 // time....... i hate my choices some times.
 
 export type TypeValue = string | string[];
+export type TypeProperties = {
+    [key: string]: TypeValue[],
+}
 export type Type = {
     unions: string[],
-    properties: {
-        [key: string]: TypeValue[],
-    }
+    properties: TypeProperties,
 }
 
+//export function typeToString(type: Type): string {
+//}
