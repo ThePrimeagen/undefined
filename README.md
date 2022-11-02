@@ -8,30 +8,30 @@ I will define them...
 Here is a reason for why you could use it:
 
 1. You have too many JSON objects to develop types for other than naming.
-1. You may have enums that need to get pulled out.
-1. You want as compact possible representation
+2. You may have enums that need to get pulled out.
+3. You want as compact possible representation
 
 ## How To Use
 
-1. clone
+1. Clone
 ```
 git clone git@github.com:ThePrimeagen/undefined.git
 ```
 
-1. dependency installation
+2. Dependency installation
 ```
 yarn install
 ```
 
-1. have a file filled with json responses (check out `out`)
+3. Have a file filled with json responses (check out `out`)
 
-1. The data can be handed in a few ways
+4. The data can be handed in a few ways
 ```
 cat <jsons_here> | npx ts-node src/undefined.ts stdin
 npx ts-node src/undefined.ts <json_here>
 ```
 
-1. you want to save this to a file?
+5. You want to save this to a file?
 ```
 npx ts-node src/undefined.ts <json_here> > types.d.ts
 ```
