@@ -4,6 +4,7 @@
 // time....... i hate my choices some times.
 
 import { Config } from "./config";
+import { Logger } from "./logger";
 import { getName } from "./utils";
 
 export type TypeValue = string | string[];
@@ -100,8 +101,14 @@ export function typeToString(keyNameToType: KeyNameToType, unions: Union, config
     for (const [keyName, v] of keyNameToType.entries()) {
         const name = getName(keyName, config, v);
         const keys = Object.keys(v.properties);
-        if (keys.length === 0) {
+
+        if (config.traces.includes(name)) {
+            Logger.trace("creating object", name, v);
+        }
+        if (keys.length === 0 && v.unions.length > 0) {
             out.push(`type ${name} = ${stringUnions(v, unions, false)};`);
+        if (keys.length === 0) {
+            out.push(`type ${name} = {};`);
         } else {
             out.push(`type ${name} = ${stringUnions(v, unions)} {`);
             for (let i = 0; i < keys.length; ++i) {

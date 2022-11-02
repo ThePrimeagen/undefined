@@ -94,7 +94,7 @@ function typeObject(obj: StringToUnknown, config: Config): string {
         }
     }
 
-    return getName(keyName, config, typeObj);;
+    return getName(keyName, config, typeObj);
 }
 
 async function run() {

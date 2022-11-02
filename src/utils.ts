@@ -1,18 +1,12 @@
 import { Type } from "./types";
 import { Config } from "./config";
+import { Logger } from "./logger";
 
 export function makeName(name: string): string {
     return name.substring(0, 1).toUpperCase() + name.substring(1);
 }
 
-let count = 0;
-const keyNameToName: Map<string, string> = new Map();
-export function getName(keyName: string, config: Config, type: Type): string {
-    const value = keyNameToName.get(keyName);
-    if (value) {
-        return value;
-    }
-
+export function getDisplayName(keyName: string, config: Config, type: Type): string | undefined {
     const keys = Object.keys(type.properties);
     for (const nameConfig of config.names) {
         if (keys.length !== nameConfig.props.length && nameConfig.exact) {
@@ -30,8 +24,27 @@ export function getName(keyName: string, config: Config, type: Type): string {
         }
     }
 
+    return undefined;
+}
+
+let count = 0;
+const keyNameToName: Map<string, string> = new Map();
+export function getName(keyName: string, config: Config, t: Type): string {
+    const value = keyNameToName.get(keyName);
+    if (value) {
+        return value;
+    }
+
+    const displayName = getDisplayName(keyName, config, t);
+    if (displayName) {
+        keyNameToName.set(keyName, displayName);
+        return displayName;
+    }
+
     const name = config.nameBase + ++count;
+    if (config.traces.length && config.traces.includes(name)) {
+        Logger.trace("minting", name, "for", t);
+    }
     keyNameToName.set(keyName, name);
     return name;
 }
-

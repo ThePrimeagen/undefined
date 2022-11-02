@@ -7,6 +7,7 @@ export type Config = {
     file: string;
     unionCount: number;
     unions: {[key: string]: string[]},
+    traces: string[],
     names: {
         name: string,
         exact: boolean,
@@ -20,6 +21,7 @@ type CLIConfig = {
     file: string;
     configFile: string;
     unionCount: number;
+    traces: string,
 }
 
 const BASE_NAME = "BaseName";
@@ -51,6 +53,11 @@ const args = [{
     type: String,
     alias: "n",
     defaultValue: BASE_NAME,
+}, {
+    name: "trace",
+    type: String,
+    alias: "t",
+    defaultValue: "",
 }];
 
 
@@ -65,6 +72,7 @@ export type TSConfig = {
 
     nameBase?: string;
     file?: string;
+    traces?: string[];
     unionCount?: number;
 };
 
@@ -80,6 +88,7 @@ export function getConfig(): Config {
             file: config.file || FILE,
             nameBase: config.nameBase || BASE_NAME,
             enums: config.enums || "",
+            traces: config.traces || [],
         }
     }
 
@@ -90,6 +99,7 @@ export function getConfig(): Config {
         file: cliArgs.file || FILE,
         nameBase: cliArgs.nameBase || BASE_NAME,
         enums: cliArgs.enums !== "" ? cliArgs.enums.split(",") : [],
+        traces: cliArgs.traces.split(",") || [],
     };
 }
 
