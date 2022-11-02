@@ -1,6 +1,14 @@
 # undefined
 A project to turn a file of JSON responses into TypeScript types
 
+## Warning on code
+I haven't really tried to organize this code.  I made this code strictly as i
+learned more about the problem space.  So the code looks like exploratory code,
+not production ready code.
+
+To me, it seems like there is going to be a several pass compiler for this to
+be a real deal here.
+
 ## Why create this?
 I have a new database at Netflix with +100 unique events without definitions.
 I will define them...
