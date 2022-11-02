@@ -93,6 +93,7 @@ export function typeToString(keyNameToType: KeyNameToType, unions: Union, config
             // TODO: There are several things wrong here
             out.push(`type ${uName} = ${combinedUnion.map(x => unionName(x)).join(" & ")}`);
         }
+        out.push("");
     }
 
     for (const [keyName, v] of keyNameToType.entries()) {
@@ -112,6 +113,7 @@ export function typeToString(keyNameToType: KeyNameToType, unions: Union, config
             out.push(`}`);
         }
 
+        out.push("");
     };
 
     return out.join("\n");

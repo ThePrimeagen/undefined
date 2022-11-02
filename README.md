@@ -9,6 +9,10 @@ not production ready code.
 To me, it seems like there is going to be a several pass compiler for this to
 be a real deal here.
 
+## Union Collapsing is really hard...
+Its currently disabled because its creating incorrect types.  But i think i am
+pretty dang close to it being correct.
+
 ## Why create this?
 I have a new database at Netflix with +100 unique events without definitions.
 I will define them...
