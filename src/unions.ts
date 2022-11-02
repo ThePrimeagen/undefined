@@ -1,12 +1,11 @@
 import { Config } from "./config";
 import isEqual from "lodash.isequal";
-import { Type, TypeProperties, TypeValue } from "./types";
-import { getName } from "./utils";
+import { NamedTypeProperty, Type, TypeValue, Union } from "./types";
 
 export type UnionizeableProperty = {
     propKey: string;
     propValue: TypeValue[];
-    keyName: string;
+    count: number;
 };
 
 export type KeyCounts = {
@@ -19,7 +18,7 @@ export type KeyCounts = {
 
 type TypedData = Map<string, Type>;
 
-function keyDupeCount(data: TypedData): KeyCounts {
+export function keyDupeCount(data: TypedData): KeyCounts {
     const out: KeyCounts = {};
 
     for (const [_, d] of data.entries()) {
@@ -50,17 +49,17 @@ function keyDupeCount(data: TypedData): KeyCounts {
     return out;
 }
 
-function getUnionizableProperties(keyCounts: KeyCounts, config: Config): UnionizeableProperty[] {
+export function getUnionizableProperties(keyCounts: KeyCounts, config: Config): UnionizeableProperty[] {
     const required = config.unionCount;
     const out: UnionizeableProperty[] = [];
 
-    for (const [k, v] of Object.entries(keyCounts)) {
+    for (const v of Object.values(keyCounts)) {
         for (let i = 0; i < v.length; ++i) {
             if (v[i].count > required) {
                 out.push({
                     propKey: v[i].propKey,
                     propValue: v[i].propValue,
-                    keyName: k,
+                    count: v[i].count,
                 });
             }
         }
@@ -69,10 +68,37 @@ function getUnionizableProperties(keyCounts: KeyCounts, config: Config): Unioniz
     return out;
 }
 
-export function unionize(data: TypedData, config: Config): void {
+// an interesting idea if we wish to optimize.
+//
+// we would have to do several passes and cut out branches REAL fast for this
+// to work
+/*
+type _TreeNode = {
+    union: UnionizeableProperty,
+    remainingPossibles: UnionizeableProperty[],
+    nodes: string[],
+    children: _TreeNode[],
+}
+*/
+
+function toStringValue(propValue: TypeValue[]) {
+    const copy = propValue.slice(0);
+    const strValues = copy.filter(x => !Array.isArray(x)).sort();
+
+    const arrValues = copy.filter(x => Array.isArray(x));
+    const additional: string = arrValues.length > 0 ? toStringValue(arrValues) : "";
+
+    return strValues.join("") + additional;
+}
+
+function toString(propKey: string, propValue: TypeValue[]): string {
+    return propKey + toStringValue(propValue);
+}
+
+export function unionize(data: TypedData, config: Config): Union {
     const keyCount = keyDupeCount(data);
     const unionProps = getUnionizableProperties(keyCount, config);
-    const unions = new Map<string, TypeProperties>();
+    const unions = new Map<string, NamedTypeProperty>();
 
     // Two passes
     // 1st pass puts every possible single union together.
@@ -83,19 +109,23 @@ export function unionize(data: TypedData, config: Config): void {
             propValue,
         } = unionProps[i];
 
-        for (const [_, v] of data.entries()) {
-            if (propKey in v.properties && isEqual(v.properties[propKey], propValue)) {
-                delete v.properties[propKey];
+        for (const type of data.values()) {
+            if (propKey in type.properties && isEqual(type.properties[propKey], propValue)) {
+                delete type.properties[propKey];
 
-                const name = getName(propKey, config);
-                if (!unions.has(name)) {
-                    unions.set(name, {
-                        [propKey]: propValue,
+                const key = toString(propKey, propValue);
+                if (!unions.has(key)) {
+                    unions.set(key, {
+                        name: propKey,
+                        properties: {[propKey]: propValue},
                     });
                 }
-                v.unions.push(name);
+
+                type.unions.push(key);
             }
         }
     }
+
+    return unions;
 }
 

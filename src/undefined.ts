@@ -2,7 +2,8 @@ import getData from "./file";
 import { Config, getConfig } from "./config";
 import { determineEnum, stringifyEnum, updateAllEnumReferences } from "./enum";
 import { getName, makeName } from "./utils";
-import { Type } from "./types";
+import { Type, typeToString } from "./types";
+import { unionize } from "./unions";
 
 const keyNameToType: Map<string, Type> = new Map();
 
@@ -97,35 +98,6 @@ function typeObject(obj: StringToUnknown, config: Config): string {
     return name;
 }
 
-function arrayTypeToString(arr: (string | string[])[], current: {[key: string]: boolean} = {}, sub: boolean = false): string {
-    const out: string[] = [];
-    for (let i = 0; i < arr.length; ++i) {
-        const value = arr[i];
-        if (Array.isArray(value)) {
-            const types = arrayTypeToString(value, current, true);
-            if (types) {
-                out.push(types);
-            }
-        } else if (!current[value]) {
-            current[value] = true;
-            out.push(value);
-        }
-    }
-
-    if (out.length > 1) {
-        return `(${out.join(" | ")})`;
-    }
-
-    if (out.length === 1) {
-        if (sub) {
-            return `${out[0]}[]`;
-        }
-        return out[0];
-    }
-
-    return "";
-}
-
 async function run() {
     const config = await getConfig();
     const data = getData<{[key: string]: unknown}>(config.file);
@@ -142,18 +114,9 @@ async function run() {
         updateAllEnumReferences(keyNameToType, enumItem, enumName);
     }
 
-    keyNameToType.forEach((v, keyName) => {
-        const name = getName(keyName, config);
-        console.log(`type ${name} = {`);
-        const keys = Object.keys(v.properties);
-        for (let i = 0; i < keys.length; ++i) {
-            const k = keys[i];
-            const types = v.properties[k];
+    const unions = unionize(keyNameToType, config);
 
-            console.log(`    ${k}: ${arrayTypeToString(types)};`);
-        }
-        console.log(`}`);
-    });
+    console.log(typeToString(keyNameToType, unions, config));
 }
 
 run();
