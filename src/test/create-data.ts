@@ -1,4 +1,4 @@
-const jsons = [
+export const jsons = [
     {
         _barBuzz: "",
         bar: 22,
@@ -51,5 +51,6 @@ const jsons = [
     },
 ]
 
-jsons.forEach(x => console.log(JSON.stringify(x)));
-
+if (require.main === module) {
+    jsons.forEach(x => console.log(JSON.stringify(x)));
+}

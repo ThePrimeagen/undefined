@@ -1,0 +1,13 @@
+{
+    "unions": {
+        "BarBuzz": [ "bar", "buzz" ],
+        "BarThatLithium": [ "bar", "that", "lithium" ]
+    },
+
+    "names": [{
+        "exact": false,
+        "props": ["FooBar"],
+    }]
+}
+
+

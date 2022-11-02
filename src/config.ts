@@ -1,91 +1,93 @@
 import fs from "fs";
-import yargs from "yargs";
-
-type PartialConfig = {
-    nameBase?: string;
-    enums?: string;
-    file?: string | "stdin";
-    unionCount?: number;
-    config: string;
-}
-
-export type TSConfig = {
-    unions: {[key: string]: string[]},
-    names: {[key: string]: string[]},
-};
+import cli from "command-line-args";
 
 export type Config = {
     nameBase: string;
     enums: string[];
-    file: string | "stdin";
+    file: string;
     unionCount: number;
-    config: TSConfig;
+    unions: {[key: string]: string[]},
+    names: {
+        exact: boolean,
+        props: string[],
+    }[],
 }
 
-// TODO: Normalize i use command-line-arguments fro this, tried yarg, need
-// to take more time to figure this out.
+type CLIConfig = {
+    nameBase: string;
+    enums: string;
+    file: string;
+    configFile: string;
+    unionCount: number;
+}
+
 const BASE_NAME = "BaseName";
 const UNION_COUNT = 4;
-const CONFIG = {
-    unions: {},
-    names: {},
+const FILE = "stdin";
+
+const args = [{
+    name: "configFile",
+    type: String,
+    alias: "c",
+    defaultValue: "",
+}, {
+    name: "file",
+    type: String,
+    alias: "f",
+    defaultValue: FILE,
+}, {
+    name: "enums",
+    type: String,
+    alias: "e",
+    defaultValue: "",
+}, {
+    name: "unionCount",
+    type: Number,
+    alias: "u",
+    defaultValue: UNION_COUNT,
+}, {
+    name: "nameBase",
+    type: String,
+    alias: "n",
+    defaultValue: BASE_NAME,
+}];
+
+
+export type TSConfig = {
+    unions: {[key: string]: string[]},
+    names: {
+        exact: boolean,
+        props: string[],
+    }[],
+    enums: string[];
+
+    nameBase?: string;
+    file?: string;
+    unionCount?: number;
 };
 
-// TODO: THIS IS MY LEAST FAVORITE THING I HAVE EVER DONE AND CLEARLY I DID NOT
-// RTFM
-export async function getConfig(): Promise<Config> {
-    // @ts-ignore
-    const args = await yargs(process.argv).argv as PartialConfig;
+export function getConfig(): Config {
+    const cliArgs = cli(args) as CLIConfig;
 
-    if ("enums" in args) {
-        // @ts-ignore
-        args.enums = args.enums.split(",");
-    } else {
-        // @ts-ignore
-        args.enums = [];
-    }
-
-    if (!("nameBase" in args)) {
-        // @ts-ignore
-        args.nameBase = BASE_NAME;
-    }
-
-    if (("unionCount" in args)) {
-        // @ts-ignore
-        args.unionCount = +args.unionCount;
-    } else {
-        args.unionCount = UNION_COUNT;
-    }
-
-    if (("config" in args)) {
-        const configFile = args.config;
-        try {
-            const config = JSON.parse(fs.readFileSync(configFile).toString());
-            args.config = config;
-        } catch (e) {
-            // @ts-ignore
-            throw new Error(`error'd while loading config. ${args.config} ${e.message}`);
-        }
-    } else {
-        // @ts-ignore
-        args.config = CONFIG;
-    }
-
-    if (!("file" in args)) {
-        if (process.argv[2].length < 3) {
-            throw new Error("please provide a file either as the first positional argument or --file");
-        }
-
+    if (cliArgs.configFile) {
+        const config = JSON.parse(fs.readFileSync(cliArgs.configFile).toString()) as TSConfig;
         return {
-            nameBase: args.nameBase as string,
-            unionCount: args.unionCount as number,
-            // @ts-ignore
-            config: args.config as TSConfig,
-            enums: args.enums as unknown as string[],
-            file: String(process.argv[2]),
-        };
+            unions: config.unions,
+            names: config.names,
+            unionCount: config.unionCount || UNION_COUNT,
+            file: config.file || FILE,
+            nameBase: config.nameBase || BASE_NAME,
+            enums: config.enums || "",
+        }
     }
 
-    return args as unknown as Config;
+    return {
+        unions: {},
+        names: [],
+        unionCount: cliArgs.unionCount || UNION_COUNT,
+        file: cliArgs.file || FILE,
+        nameBase: cliArgs.nameBase || BASE_NAME,
+        enums: cliArgs.enums !== "" ? cliArgs.enums.split(",") : [],
+    };
 }
 

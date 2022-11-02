@@ -99,7 +99,7 @@ function typeObject(obj: StringToUnknown, config: Config): string {
 }
 
 async function run() {
-    const config = await getConfig();
+    const config = getConfig();
     const data = getData<{[key: string]: unknown}>(config.file);
 
     // TODO: My mother would even be upset
