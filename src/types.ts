@@ -107,7 +107,7 @@ export function typeToString(keyNameToType: KeyNameToType, unions: Union, config
         }
         if (keys.length === 0 && v.unions.length > 0) {
             out.push(`type ${name} = ${stringUnions(v, unions, false)};`);
-        if (keys.length === 0) {
+        } else if (keys.length === 0) {
             out.push(`type ${name} = {};`);
         } else {
             out.push(`type ${name} = ${stringUnions(v, unions)} {`);
