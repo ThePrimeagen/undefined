@@ -8,6 +8,7 @@ export type Config = {
     unionCount: number;
     unions: {[key: string]: string[]},
     names: {
+        name: string,
         exact: boolean,
         props: string[],
     }[],
@@ -58,6 +59,7 @@ export type TSConfig = {
     names: {
         exact: boolean,
         props: string[],
+        name: string,
     }[],
     enums: string[];
 

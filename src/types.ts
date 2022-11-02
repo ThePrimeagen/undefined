@@ -98,7 +98,7 @@ export function typeToString(keyNameToType: KeyNameToType, unions: Union, config
     }
 
     for (const [keyName, v] of keyNameToType.entries()) {
-        const name = getName(keyName, config);
+        const name = getName(keyName, config, v);
         const keys = Object.keys(v.properties);
         if (keys.length === 0) {
             out.push(`type ${name} = ${stringUnions(v, unions, false)};`);

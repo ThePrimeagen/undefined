@@ -1,13 +1,17 @@
 {
-    "unions": {
-        "BarBuzz": [ "bar", "buzz" ],
-        "BarThatLithium": [ "bar", "that", "lithium" ]
-    },
+    "unions": { },
 
     "names": [{
+        "name": "FlexMeDaddy",
         "exact": false,
-        "props": ["FooBar"],
-    }]
+        "props": ["bar", "buzz"]
+    }, {
+        "name": "ThisOneWont",
+        "exact": true,
+        "props": ["lithium"]
+    }],
+
+    "enums": ["Site", "Level"]
 }
 
 

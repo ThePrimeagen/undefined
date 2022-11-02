@@ -74,7 +74,6 @@ type StringToUnknown = {[key: string]: unknown};
 function typeObject(obj: StringToUnknown, config: Config): string {
     const keys = Object.keys(obj);
     const keyName = getKeyName(obj);
-    const name = getName(keyName, config);
     const typeObj = getObj(keyName);
 
     for (let i = 0; i < keys.length; ++i) {
@@ -95,7 +94,7 @@ function typeObject(obj: StringToUnknown, config: Config): string {
         }
     }
 
-    return name;
+    return getName(keyName, config, typeObj);;
 }
 
 async function run() {
