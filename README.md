@@ -9,6 +9,12 @@ not production ready code.
 To me, it seems like there is going to be a several pass compiler for this to
 be a real deal here.
 
+### I am unsure how much i want to pursue this beyond my needs
+My needs have been met, i am unsure if I want to pursue this much further.
+
+If anyone is interested in this, i can certainly help you get ramped up,
+whisper me twitter
+
 ## Union Collapsing is really hard...
 Its currently disabled because its creating incorrect types.  But i think i am
 pretty dang close to it being correct.
