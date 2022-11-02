@@ -90,7 +90,8 @@ export function typeToString(keyNameToType: KeyNameToType, unions: Union, config
 
             out.push("}");
         } else if (combinedUnion) {
-            out.push(`type ${uName} = ${combinedUnion.join(" & ")}`);
+            // TODO: There are several things wrong here
+            out.push(`type ${uName} = ${combinedUnion.map(x => unionName(x)).join(" & ")}`);
         }
     }
 

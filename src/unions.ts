@@ -117,10 +117,10 @@ function unionDupeCount(data: TypedData): UnionDupes {
     return dupes;
 }
 
-function getTypesByUnionName(data: TypedData, name: string): Type[] {
+function getTypesByUnionKey(data: TypedData, unionKey: string): Type[] {
     const out = [];
     for (const v of data.values()) {
-        if (v.unions.includes(name)) {
+        if (v.unions.includes(unionKey)) {
             out.push(v);
         }
     }
@@ -169,12 +169,12 @@ function attemptCombine(data: TypedData, unions: Union, ignore: string[] = []): 
     const [
         type0Name,
         type1Name,
-    ] = highest2.map(x => x.key);
+    ] = highest2.map(x => unions.get(x.key)?.name as string);
 
     const [
         type0,
         type1,
-    ] = highest2.map(x => getTypesByUnionName(data, x.key));
+    ] = highest2.map(x => getTypesByUnionKey(data, x.key));
 
     const type0Map = new Map<Type, boolean>(type0.map(x => [x, true]));
     const type1Map = new Map<Type, boolean>(type1.map(x => [x, true]));
