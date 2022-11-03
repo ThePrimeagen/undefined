@@ -3,6 +3,7 @@ import { makeName } from "./utils";
 
 export type EnumKeys = (string | number)[];
 type DataShape = {[key: string]: unknown};
+
 export function determineEnum(data: DataShape[], key: string): EnumKeys {
     const found: EnumKeys = [];
     data.forEach(x => {

@@ -1,6 +1,4 @@
 {
-    "unions": { },
-
     "names": [{
         "name": "FlexMeDaddy",
         "exact": false,
@@ -10,8 +8,6 @@
         "exact": true,
         "props": ["lithium"]
     }],
-
-    "enums": ["Site", "Level"]
 }
 
 

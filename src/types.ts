@@ -5,7 +5,6 @@
 
 import { Config } from "./config";
 import { Logger } from "./logger";
-import { getName } from "./utils";
 
 export type TypeValue = string | string[];
 
@@ -14,6 +13,7 @@ export type TypeProperties = {
 }
 
 export type Type = {
+    displayName: string,
     unions: string[],
     properties: TypeProperties,
 }
@@ -24,7 +24,7 @@ export type NamedTypeProperty = {
     combinedUnion?: string[];
 };
 
-export type KeyNameToType = Map<string, Type>;
+export type TypeSet = Map<string, Type>;
 
 export type Union = Map<string, NamedTypeProperty>
 
@@ -72,7 +72,22 @@ function stringUnions(type: Type, unions: Union, connectingAmp: boolean = true):
     return `${type.unions.map(u => unionName(unions.get(u)?.name as string)).join(" & ")} ${connectingAmp ? "& " : ""}`;
 }
 
-export function typeToString(keyNameToType: KeyNameToType, unions: Union, config: Config): string {
+function removeUndefined(typeValue: TypeValue[]): boolean {
+    // NOTE: its only top level
+    const idx = typeValue.indexOf("undefined");
+    let found = false;
+    if (idx >= 0) {
+        // undefined fields need the type undefined.
+        if (typeValue.length > 1) {
+            typeValue.splice(idx, 1);
+            found = true;
+        }
+    }
+
+    return found;
+}
+
+export function typeToString(keyNameToType: TypeSet, unions: Union, config: Config): string {
     const out: string[] = [];
 
     for (const [_, v] of unions.entries()) {
@@ -83,11 +98,13 @@ export function typeToString(keyNameToType: KeyNameToType, unions: Union, config
             out.push(`type ${uName} = {`);
 
             const keys = Object.keys(properties);
+
             for (let i = 0; i < keys.length; ++i) {
                 const k = keys[i];
                 const types = properties[k];
+                const nullable = removeUndefined(types);
 
-                out.push(`    ${k}: ${arrayTypeToString(types)};`);
+                out.push(`    ${k}${nullable ? "?" : ""}: ${arrayTypeToString(types)};`);
             }
 
             out.push("}");
@@ -98,24 +115,24 @@ export function typeToString(keyNameToType: KeyNameToType, unions: Union, config
         out.push("");
     }
 
-    for (const [keyName, v] of keyNameToType.entries()) {
-        const name = getName(keyName, config, v);
+    for (const v of keyNameToType.values()) {
         const keys = Object.keys(v.properties);
 
-        if (config.traces.includes(name)) {
-            Logger.trace("creating object", name, v);
+        if (config.traces.includes(v.displayName)) {
+            Logger.trace("creating object", v.displayName, v);
         }
         if (keys.length === 0 && v.unions.length > 0) {
-            out.push(`type ${name} = ${stringUnions(v, unions, false)};`);
+            out.push(`type ${v.displayName} = ${stringUnions(v, unions, false)};`);
         } else if (keys.length === 0) {
-            out.push(`type ${name} = {};`);
+            out.push(`type ${v.displayName} = {};`);
         } else {
-            out.push(`type ${name} = ${stringUnions(v, unions)} {`);
+            out.push(`type ${v.displayName} = ${stringUnions(v, unions)} {`);
             for (let i = 0; i < keys.length; ++i) {
                 const k = keys[i];
                 const types = v.properties[k];
+                const nullable = removeUndefined(types);
 
-                out.push(`    ${k}: ${arrayTypeToString(types)};`);
+                out.push(`    ${k}${nullable ? "?" : ""}: ${arrayTypeToString(types)};`);
             }
 
             out.push(`}`);

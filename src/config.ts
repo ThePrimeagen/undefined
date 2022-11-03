@@ -13,7 +13,24 @@ export type Config = {
         exact: boolean,
         props: string[],
     }[],
+    collapse: string[][]
 }
+
+export type TSConfig = {
+    unions?: {[key: string]: string[]},
+    names?: {
+        exact: boolean,
+        props: string[],
+        name: string,
+    }[],
+
+    enums?: string[];
+    nameBase?: string;
+    file?: string;
+    traces?: string[];
+    unionCount?: number;
+    collapse?: string[][],
+};
 
 type CLIConfig = {
     nameBase: string;
@@ -60,20 +77,15 @@ const args = [{
     defaultValue: "",
 }];
 
-
-export type TSConfig = {
-    unions: {[key: string]: string[]},
-    names: {
-        exact: boolean,
-        props: string[],
-        name: string,
-    }[],
-    enums: string[];
-
-    nameBase?: string;
-    file?: string;
-    traces?: string[];
-    unionCount?: number;
+const defaultConfig = {
+    unions: {},
+    names: [],
+    unionCount: UNION_COUNT,
+    file: FILE,
+    nameBase: BASE_NAME,
+    enums: [],
+    traces: [],
+    collapse: [],
 };
 
 export function getConfig(): Config {
@@ -82,24 +94,22 @@ export function getConfig(): Config {
     if (cliArgs.configFile) {
         const config = JSON.parse(fs.readFileSync(cliArgs.configFile).toString()) as TSConfig;
         return {
-            unions: config.unions,
-            names: config.names,
-            unionCount: config.unionCount || UNION_COUNT,
-            file: config.file || FILE,
-            nameBase: config.nameBase || BASE_NAME,
-            enums: config.enums || "",
-            traces: config.traces || [],
-        }
+            ...defaultConfig,
+            ...config,
+        };
     }
 
-    return {
-        unions: {},
-        names: [],
-        unionCount: cliArgs.unionCount || UNION_COUNT,
-        file: cliArgs.file || FILE,
-        nameBase: cliArgs.nameBase || BASE_NAME,
+    const config = {
+        unionCount: cliArgs.unionCount,
+        file: cliArgs.file,
+        nameBase: cliArgs.nameBase,
         enums: cliArgs.enums !== "" ? cliArgs.enums.split(",") : [],
-        traces: cliArgs.traces.split(",") || [],
+        traces: cliArgs.traces.split(","),
+    };
+
+    return {
+        ...defaultConfig,
+        ...config,
     };
 }
 

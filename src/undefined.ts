@@ -1,16 +1,12 @@
 import getData from "./file";
 import { Config, getConfig } from "./config";
 import { determineEnum, stringifyEnum, updateAllEnumReferences } from "./enum";
-import { getName, makeName } from "./utils";
+import { getKeyName, getName, makeName } from "./utils";
 import { Type, typeToString } from "./types";
 import { unionize } from "./unions";
+import { collapse } from "./collapse";
 
 const keyNameToType: Map<string, Type> = new Map();
-
-function getKeyName(obj: object): string {
-    const keys = Object.keys(obj); // MOST IMPORTANT
-    return keys.sort().join("");
-}
 
 function isPrimitive(typeofValue: string): boolean {
     return typeofValue === "number" ||
@@ -38,7 +34,9 @@ function getObj(key: string): Type {
     const typeObj = {
         unions: [],
         properties: {},
+        displayName: "",
     };
+
     keyNameToType.set(key, typeObj);
 
     return typeObj;
@@ -94,7 +92,9 @@ function typeObject(obj: StringToUnknown, config: Config): string {
         }
     }
 
-    return getName(keyName, config, typeObj);
+    typeObj.displayName = getName(keyName, config, typeObj);
+
+    return typeObj.displayName;
 }
 
 async function run() {
@@ -103,7 +103,6 @@ async function run() {
 
     // TODO: My mother would even be upset
     data.forEach(x => typeObject(x, config));
-
     for (let i = 0; i < config.enums.length; ++i) {
         const enumItem = config.enums[i];
         const enumKeys = determineEnum(data, enumItem);
@@ -112,6 +111,8 @@ async function run() {
         console.log(stringifyEnum(enumName, enumKeys));
         updateAllEnumReferences(keyNameToType, enumItem, enumName);
     }
+
+    collapse(keyNameToType, config);
 
     const unions = unionize(keyNameToType, config);
     console.log(typeToString(keyNameToType, unions, config));
