@@ -124,7 +124,9 @@ function buildTypeFromTypes(types: Type[], context: Context): Type {
     return type;
 }
 
-export function collapse(data: TypeSet, context: Context): void {
+export function collapse(context: Context): void {
+    const data = context.typeSet;
+
     // simple algo
     // 1. find all matches per collapse
     // 2. find all references to every collapse and make it into 1.

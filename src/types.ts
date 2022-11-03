@@ -24,6 +24,7 @@ export type NamedTypeProperty = {
     name: string;
     properties?: TypeProperties;
     combinedUnion?: string[];
+    useName?: boolean;
 };
 
 export type TypeSet = Map<string, Type>;
@@ -108,9 +109,9 @@ export function typeToString(context: Context): string {
 
     const out: string[] = [];
 
-    for (const [_, v] of unions.entries()) {
-        const {properties, name, combinedUnion} = v;
-        const uName = unionName(name);
+    for (const v of unions.values()) {
+        const {properties, name, combinedUnion, useName} = v;
+        const uName = useName ? name : unionName(name);
 
         if (properties) {
             out.push(`type ${uName} = {`);
@@ -128,7 +129,7 @@ export function typeToString(context: Context): string {
             out.push("}");
         } else if (combinedUnion) {
             // TODO: There are several things wrong here
-            out.push(`type ${uName} = ${combinedUnion.map(x => unionName(x)).join(" & ")}`);
+            out.push(`type ${uName} = ${combinedUnion.map(x => useName ? x : unionName(x)).join(" & ")}`);
         }
         out.push("");
     }

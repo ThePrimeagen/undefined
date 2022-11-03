@@ -4,6 +4,7 @@ import { determineEnum, stringifyEnum, updateAllEnumReferences } from "./enum";
 import { Context, Data, DataSet, EnumSet, Type, typeObject, typeToString } from "./types";
 import { unionize } from "./unions";
 import { makeName, Name } from "./utils";
+import { sumTypes } from "./sum-types";
 
 // TODO: Merge context and undefined
 export function undefinedRun(data: DataSet, config: Config): Context {
@@ -47,9 +48,9 @@ export function undefinedRun(data: DataSet, config: Config): Context {
     }
     context.enums = enums;
 
-    collapse(typeSet, context);
-
-    context.unions = unionize(typeSet, config);
+    collapse(context);
+    sumTypes(context);
+    unionize(context);
 
     return context;
 }
@@ -65,3 +66,4 @@ export function stringify(context: Context): string {
     out.push(typeToString(context));
     return out.join("\n");
 }
+

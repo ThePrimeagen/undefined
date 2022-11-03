@@ -13,7 +13,10 @@ export type Config = {
         exact: boolean,
         props: string[],
     }[],
-    collapse: string[][]
+    collapse: string[][],
+    sumType?: {
+        [key: string]: string[],
+    },
 }
 
 export type TSConfig = {
@@ -30,6 +33,9 @@ export type TSConfig = {
     traces?: string[];
     unionCount?: number;
     collapse?: string[][],
+    sumType?: {
+        [key: string]: string[],
+    },
 };
 
 type CLIConfig = {
@@ -86,6 +92,7 @@ const defaultConfig = {
     enums: [],
     traces: [],
     collapse: [],
+    sumType: {},
 };
 
 export function getDefaultConfig(): Config {

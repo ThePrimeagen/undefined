@@ -5,7 +5,7 @@
 // most correct, just correct enough
 import { Config } from "./config";
 import isEqual from "lodash.isequal";
-import { NamedTypeProperty, Type, TypeValue, Union } from "./types";
+import { Context, NamedTypeProperty, Type, TypeValue, Union } from "./types";
 
 export type UnionizeableProperty = {
     propKey: string;
@@ -211,10 +211,13 @@ function attemptCombine(data: TypedData, unions: Union, config: Config, ignore: 
 }
 
 // NOTE: Amazon hates this function
-export function unionize(data: TypedData, config: Config): Union {
+export function unionize(context: Context): void {
+    const data = context.typeSet;
+    const config = context.config;
+
     const keyCount = keyDupeCount(data);
     const unionProps = getUnionizableProperties(keyCount, config);
-    const unions = new Map<string, NamedTypeProperty>();
+    const unions = context.unions;
 
     // Two passes
     // 1st pass puts every possible single union together.
@@ -252,7 +255,5 @@ export function unionize(data: TypedData, config: Config): Union {
         }
 
     } while (missCount < 3);
-
-    return unions;
 }
 
