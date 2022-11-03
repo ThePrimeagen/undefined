@@ -133,7 +133,6 @@ export function collapse(data: TypeSet, config: Config): void {
 
     const intersections = getAllIntersections(data, config.collapse);
 
-    console.log("data before collapse", data);
     for (const types of intersections) {
         const combinedType = buildTypeFromTypes(types, config);
         const keyName = getKeyName(combinedType.properties);
@@ -142,7 +141,5 @@ export function collapse(data: TypeSet, config: Config): void {
 
         data.set(keyName, combinedType);
     }
-    console.log("data after collapse", data);
-
 }
 
