@@ -142,7 +142,7 @@ export function typeToString(context: Context): string {
         if (keys.length === 0 && v.unions.length > 0) {
             out.push(`type ${v.displayName} = ${stringUnions(v, unions, false)};`);
         } else if (keys.length === 0) {
-            out.push(`type ${v.displayName} = {};`);
+            out.push(`type ${v.displayName} = Record<string, never>;`);
         } else {
             out.push(`type ${v.displayName} = ${stringUnions(v, unions)} {`);
             for (let i = 0; i < keys.length; ++i) {
