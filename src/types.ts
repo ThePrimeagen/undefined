@@ -5,6 +5,7 @@
 
 import { Config } from "./config";
 import { Logger } from "./logger";
+import { getKeyName, getName } from "./utils";
 
 export type TypeValue = string | string[];
 
@@ -142,4 +143,96 @@ export function typeToString(keyNameToType: TypeSet, unions: Union, config: Conf
     };
 
     return out.join("\n");
+}
+
+function isPrimitive(typeofValue: string): boolean {
+    return typeofValue === "number" ||
+        typeofValue === "string" ||
+        typeofValue === "boolean";
+}
+
+function insertKeyValue(obj: Type, key: string, value: string | string[]): void {
+    let props = obj.properties[key];
+    if (!props) {
+        props = obj.properties[key] = [];
+    }
+
+    if (Array.isArray(value) || !props.includes(value)) {
+        props.push(value);
+    }
+}
+
+function getObj(keyNameToType: TypeSet, key: string): Type {
+    const value = keyNameToType.get(key);
+    if (value) {
+        return value;
+    }
+
+    const typeObj = {
+        unions: [],
+        properties: {},
+        displayName: "",
+    };
+
+    keyNameToType.set(key, typeObj);
+
+    return typeObj;
+}
+
+// this might be a thing?
+function handleArray(keyNameToType: TypeSet, items: any[], config: Config): (string | string[])[] {
+    const out: (string | string[])[] = [];
+    for (let i = 0; i < items.length; ++i) {
+        const item = items[i];
+        const type = typeof item;
+        let name: string | string[] = type;
+
+        if (item === null) {
+            name = "null";
+        } else if (Array.isArray(item)) {
+            // TODO: Rename this
+            const okThisTypeSucksAndIDontKnowHowToFixIt = handleArray(keyNameToType, item, config);
+
+            // @ts-ignore
+            name = okThisTypeSucksAndIDontKnowHowToFixIt;
+        } else if (type === "object") {
+            name = typeObject(keyNameToType, item, config);
+        }
+
+        if (out.indexOf(name) === -1) {
+            out.push(name);
+        }
+    }
+
+    return out;
+}
+
+type StringToUnknown = {[key: string]: unknown};
+
+export function typeObject(keyNameToType: TypeSet, obj: StringToUnknown, config: Config): string {
+    const keys = Object.keys(obj);
+    const keyName = getKeyName(obj);
+    const typeObj = getObj(keyNameToType, keyName);
+
+    for (let i = 0; i < keys.length; ++i) {
+        const k = keys[i];
+        const value = obj[k];
+        const typeOf = typeof value;
+
+        if (isPrimitive(typeOf)) {
+            insertKeyValue(typeObj, k, typeOf);
+        } else if (value === null) {
+            insertKeyValue(typeObj, k, "null");
+        } else if (Array.isArray(value)) {
+            // @ts-ignore
+            // .... how do i ?
+            insertKeyValue(typeObj, k, handleArray(value, config));
+        } else {
+            insertKeyValue(typeObj, k, typeObject(keyNameToType, value as StringToUnknown, config));
+        }
+    }
+
+    typeObj.displayName = getName(keyName, config, typeObj);
+
+    return typeObj.displayName;
 }
