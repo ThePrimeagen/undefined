@@ -88,6 +88,12 @@ const defaultConfig = {
     collapse: [],
 };
 
+export function getDefaultConfig(): Config {
+    return {
+        ...defaultConfig,
+    };
+}
+
 export function getConfig(): Config {
     const cliArgs = cli(args) as CLIConfig;
 
@@ -104,7 +110,7 @@ export function getConfig(): Config {
         file: cliArgs.file,
         nameBase: cliArgs.nameBase,
         enums: cliArgs.enums !== "" ? cliArgs.enums.split(",") : [],
-        traces: cliArgs.traces.split(","),
+        traces: cliArgs.traces?.split(",") || [],
     };
 
     return {

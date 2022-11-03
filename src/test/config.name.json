@@ -7,7 +7,7 @@
         "name": "ThisOneWont",
         "exact": true,
         "props": ["lithium"]
-    }],
+    }]
 }
 
 

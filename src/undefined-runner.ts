@@ -1,7 +1,7 @@
 import { collapse } from "./collapse";
 import { Config } from "./config";
-import { determineEnum, EnumKeys, updateAllEnumReferences } from "./enum";
-import { Type, typeObject, TypeSet, Union } from "./types";
+import { determineEnum, EnumKeys, stringifyEnum, updateAllEnumReferences } from "./enum";
+import { Type, typeObject, TypeSet, typeToString, Union } from "./types";
 import { unionize } from "./unions";
 import { makeName } from "./utils";
 
@@ -54,4 +54,19 @@ export function undefinedRun(data: DataSet, config: Config): Undefined {
         unions,
         enums,
     };
+}
+
+export function stringify({
+    typeSet,
+    unions,
+    enums,
+}: Undefined, config: Config): string {
+    const out = [];
+    for (const enumData of enums) {
+        out.push(stringifyEnum(enumData[0], enumData[1]));
+        out.push("");
+    }
+
+    out.push(typeToString(typeSet, unions, config));
+    return out.join("\n");
 }
