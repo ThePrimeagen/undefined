@@ -59,7 +59,7 @@ export function undefinedRun(data: DataSet, config: Config): Context {
 export function stringify(context: Context): string {
     const out = [];
     for (const enumData of context.enums) {
-        out.push(stringifyEnum(enumData[0], enumData[1]));
+        out.push(stringifyEnum(context, enumData[0], enumData[1]));
         out.push("");
     }
 

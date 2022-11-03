@@ -17,6 +17,9 @@ export type Config = {
     sumType?: {
         [key: string]: string[],
     },
+
+    export?: boolean;
+    declareModule?: string;
 }
 
 export type TSConfig = {
@@ -36,6 +39,9 @@ export type TSConfig = {
     sumType?: {
         [key: string]: string[],
     },
+
+    export?: boolean;
+    declareModule?: string;
 };
 
 type CLIConfig = {
@@ -93,6 +99,7 @@ const defaultConfig = {
     traces: [],
     collapse: [],
     sumType: {},
+    export: false,
 };
 
 export function getDefaultConfig(): Config {

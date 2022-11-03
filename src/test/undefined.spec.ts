@@ -62,4 +62,18 @@ test("sumtype, unionCount == 4", function() {
     runTest(config, data, "config.sumtype.ts");
 });
 
+test("export.declare, unionCount == 4", function() {
+    const collapse = JSON.parse(
+        fs.readFileSync(path.join(__dirname, "config.export.declare.json")).toString());
+
+    const config: Config = {
+        ...getDefaultConfig(),
+        ...collapse,
+    };
+
+    const data = [...jsons];
+
+    runTest(config, data, "config.export.declare.ts");
+});
+
 

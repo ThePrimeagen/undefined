@@ -108,13 +108,27 @@ export function typeToString(context: Context): string {
     const config = context.config;
 
     const out: string[] = [];
+    const exportStr = context.config.export ? "export " : "";
+    let ident = "";
+
+    if (context.config.declareModule) {
+        ident = "    ";
+        out.push(`declare module "${context.config.declareModule}" {`);
+    }
+
+    function push(str: string): void {
+        out.push(`${ident}${str}`);
+    }
+    function newline(): void {
+        out.push("");
+    }
 
     for (const v of unions.values()) {
         const {properties, name, combinedUnion, useName} = v;
         const uName = useName ? name : unionName(name);
 
         if (properties) {
-            out.push(`type ${uName} = {`);
+            push(`${exportStr}type ${uName} = {`);
 
             const keys = Object.keys(properties);
 
@@ -123,15 +137,15 @@ export function typeToString(context: Context): string {
                 const types = properties[k];
                 const nullable = removeUndefined(types);
 
-                out.push(`    ${k}${nullable ? "?" : ""}: ${arrayTypeToString(types)};`);
+                push(`    ${k}${nullable ? "?" : ""}: ${arrayTypeToString(types)};`);
             }
 
-            out.push("}");
+            push("}");
         } else if (combinedUnion) {
             // TODO: There are several things wrong here
-            out.push(`type ${uName} = ${combinedUnion.map(x => useName ? x : unionName(x)).join(" & ")}`);
+            push(`${exportStr}type ${uName} = ${combinedUnion.map(x => useName ? x : unionName(x)).join(" & ")}`);
         }
-        out.push("");
+        newline();
     }
 
     for (const v of keyNameToType.values()) {
@@ -141,24 +155,27 @@ export function typeToString(context: Context): string {
             Logger.trace("creating object", v.displayName, v);
         }
         if (keys.length === 0 && v.unions.length > 0) {
-            out.push(`type ${v.displayName} = ${stringUnions(v, unions, false)};`);
+            push(`${exportStr}type ${v.displayName} = ${stringUnions(v, unions, false)};`);
         } else if (keys.length === 0) {
-            out.push(`type ${v.displayName} = Record<string, never>;`);
+            push(`${exportStr}type ${v.displayName} = Record<string, never>;`);
         } else {
-            out.push(`type ${v.displayName} = ${stringUnions(v, unions)} {`);
+            push(`${exportStr}type ${v.displayName} = ${stringUnions(v, unions)} {`);
             for (let i = 0; i < keys.length; ++i) {
                 const k = keys[i];
                 const types = v.properties[k];
                 const nullable = removeUndefined(types);
 
-                out.push(`    ${k}${nullable ? "?" : ""}: ${arrayTypeToString(types)};`);
+                push(`    ${k}${nullable ? "?" : ""}: ${arrayTypeToString(types)};`);
             }
 
-            out.push(`}`);
+            push(`}`);
         }
-
-        out.push("");
+        newline();
     };
+
+    if (context.config.declareModule) {
+        out.push(`}`);
+    }
 
     return out.join("\n");
 }

@@ -1,4 +1,4 @@
-import { Type } from "./types";
+import { Context, Type } from "./types";
 import { makeName } from "./utils";
 
 export type EnumKeys = (string | number)[];
@@ -22,10 +22,10 @@ export function determineEnum(data: DataShape[], key: string): EnumKeys {
     return found;
 }
 
-export function stringifyEnum(name: string, keys: EnumKeys): string {
+export function stringifyEnum(context: Context, name: string, keys: EnumKeys): string {
     const out = [];
 
-    out.push(`enum ${name} {`);
+    out.push(`${context.config.export ? "export " : ""}enum ${name} {`);
     for (let i = 0; i < keys.length; ++i) {
         out.push(`    ${makeName(keys[i] as string)} = "${keys[i]}",`);
     }
@@ -41,15 +41,3 @@ export function updateAllEnumReferences(data: Map<string, Type>, keyName: string
         }
     });
 }
-
-/*
-if (require.main === module) {
-    const file = process.argv[2];
-    const key = process.argv[3];
-    const data = getData<{[key: string]: string}>(file);
-    const keys = determineEnum(data, key);
-    const nameKey = key.substring(0, 1).toUpperCase() + key.substring(1);
-
-    console.log(stringifyEnum(nameKey, keys));
-}
-*/
