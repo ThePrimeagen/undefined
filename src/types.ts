@@ -4,8 +4,9 @@
 // time....... i hate my choices some times.
 
 import { Config } from "./config";
+import { EnumKeys } from "./enum";
 import { Logger } from "./logger";
-import { getKeyName, getName } from "./utils";
+import { getKeyName, Name } from "./utils";
 
 export type TypeValue = string | string[];
 
@@ -28,6 +29,18 @@ export type NamedTypeProperty = {
 export type TypeSet = Map<string, Type>;
 
 export type Union = Map<string, NamedTypeProperty>
+
+export type Data = {[key: string]: unknown};
+export type DataSet = Data[];
+export type EnumSet = [string, EnumKeys][];
+export type Context = {
+    config: Config,
+    data: DataSet,
+    typeSet: TypeSet,
+    namer: Name,
+    unions: Union,
+    enums: EnumSet,
+};
 
 function arrayTypeToString(arr: (string | string[])[], current: {[key: string]: boolean} = {}, sub: boolean = false): string {
     const out: string[] = [];
@@ -88,7 +101,11 @@ function removeUndefined(typeValue: TypeValue[]): boolean {
     return found;
 }
 
-export function typeToString(keyNameToType: TypeSet, unions: Union, config: Config): string {
+export function typeToString(context: Context): string {
+    const unions = context.unions;
+    const keyNameToType = context.typeSet;
+    const config = context.config;
+
     const out: string[] = [];
 
     for (const [_, v] of unions.entries()) {
@@ -180,7 +197,7 @@ function getObj(keyNameToType: TypeSet, key: string): Type {
 }
 
 // this might be a thing?
-function handleArray(keyNameToType: TypeSet, items: any[], config: Config): (string | string[])[] {
+function handleArray(context: Context, items: any[]): (string | string[])[] {
     const out: (string | string[])[] = [];
     for (let i = 0; i < items.length; ++i) {
         const item = items[i];
@@ -191,12 +208,12 @@ function handleArray(keyNameToType: TypeSet, items: any[], config: Config): (str
             name = "null";
         } else if (Array.isArray(item)) {
             // TODO: Rename this
-            const okThisTypeSucksAndIDontKnowHowToFixIt = handleArray(keyNameToType, item, config);
+            const okThisTypeSucksAndIDontKnowHowToFixIt = handleArray(context, item);
 
             // @ts-ignore
             name = okThisTypeSucksAndIDontKnowHowToFixIt;
         } else if (type === "object") {
-            name = typeObject(keyNameToType, item, config);
+            name = typeObject(context, item);
         }
 
         if (out.indexOf(name) === -1) {
@@ -209,7 +226,8 @@ function handleArray(keyNameToType: TypeSet, items: any[], config: Config): (str
 
 type StringToUnknown = {[key: string]: unknown};
 
-export function typeObject(keyNameToType: TypeSet, obj: StringToUnknown, config: Config): string {
+export function typeObject(context: Context, obj: StringToUnknown): string {
+    const keyNameToType = context.typeSet;
     const keys = Object.keys(obj);
     const keyName = getKeyName(obj);
     const typeObj = getObj(keyNameToType, keyName);
@@ -224,15 +242,16 @@ export function typeObject(keyNameToType: TypeSet, obj: StringToUnknown, config:
         } else if (value === null) {
             insertKeyValue(typeObj, k, "null");
         } else if (Array.isArray(value)) {
-            // @ts-ignore
-            // .... how do i ?
-            insertKeyValue(typeObj, k, handleArray(value, config));
+            const valueToInsert = handleArray(context, value);
+
+            // @ts-ignore type issue, OH NO
+            insertKeyValue(typeObj, k, valueToInsert);
         } else {
-            insertKeyValue(typeObj, k, typeObject(keyNameToType, value as StringToUnknown, config));
+            insertKeyValue(typeObj, k, typeObject(context, value as StringToUnknown));
         }
     }
 
-    typeObj.displayName = getName(keyName, config, typeObj);
+    typeObj.displayName = context.namer.getName(keyName, typeObj);
 
     return typeObj.displayName;
 }

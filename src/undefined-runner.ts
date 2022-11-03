@@ -1,25 +1,26 @@
 import { collapse } from "./collapse";
 import { Config } from "./config";
-import { determineEnum, EnumKeys, stringifyEnum, updateAllEnumReferences } from "./enum";
-import { Type, typeObject, TypeSet, typeToString, Union } from "./types";
+import { determineEnum, stringifyEnum, updateAllEnumReferences } from "./enum";
+import { Context, Data, DataSet, EnumSet, Type, typeObject, typeToString } from "./types";
 import { unionize } from "./unions";
-import { makeName } from "./utils";
+import { makeName, Name } from "./utils";
 
-export type Data = {[key: string]: unknown};
-export type DataSet = Data[];
-
-export type EnumSet = [string, EnumKeys][];
-export type Undefined = {
-    typeSet: TypeSet,
-    unions: Union,
-    enums: EnumSet,
-}
-
-export function undefinedRun(data: DataSet, config: Config): Undefined {
+// TODO: Merge context and undefined
+export function undefinedRun(data: DataSet, config: Config): Context {
     const typeSet = new Map<string, Type>();
+    const context: Context = {
+        typeSet,
+        data,
+        config,
+        namer: new Name(config),
+
+        // default values
+        unions: new Map(),
+        enums: [],
+    };
 
     // TODO: My mother would even be upset
-    data.forEach(x => typeObject(typeSet, x, config));
+    data.forEach((x: Data) => typeObject(context, x));
 
     // TODO: i think that i need to move this
     // into a better function.
@@ -44,29 +45,23 @@ export function undefinedRun(data: DataSet, config: Config): Undefined {
 
         enums.push([enumName, enumKeys]);
     }
+    context.enums = enums;
 
-    collapse(typeSet, config);
+    collapse(typeSet, context);
 
-    const unions = unionize(typeSet, config);
+    context.unions = unionize(typeSet, config);
 
-    return {
-        typeSet,
-        unions,
-        enums,
-    };
+    return context;
 }
 
-export function stringify({
-    typeSet,
-    unions,
-    enums,
-}: Undefined, config: Config): string {
+// TODO: the separation of context vs Undefined sucks...
+export function stringify(context: Context): string {
     const out = [];
-    for (const enumData of enums) {
+    for (const enumData of context.enums) {
         out.push(stringifyEnum(enumData[0], enumData[1]));
         out.push("");
     }
 
-    out.push(typeToString(typeSet, unions, config));
+    out.push(typeToString(context));
     return out.join("\n");
 }

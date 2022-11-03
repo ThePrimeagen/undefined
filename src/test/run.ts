@@ -1,7 +1,8 @@
 import fs from "fs";
 import path from "path";
 import { Config } from "../config";
-import { DataSet, stringify, undefinedRun } from "../undefined-runner";
+import { DataSet } from "../types";
+import { stringify, undefinedRun } from "../undefined-runner";
 
 export function runTest(config: Config, data: DataSet, expected: string) {
     const undef = undefinedRun(data, config);
@@ -9,7 +10,7 @@ export function runTest(config: Config, data: DataSet, expected: string) {
         readFileSync(path.join(__dirname, expected)).
         toString();
 
-    expect(stringify(undef, config)).toEqual(expectedValue);
+    expect(stringify(undef)).toEqual(expectedValue);
 }
 
 

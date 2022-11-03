@@ -1,6 +1,5 @@
-import { Config } from "./config";
-import { Type, TypeSet, TypeValue } from "./types";
-import { contains, getKeyName, getName } from "./utils";
+import { Context, Type, TypeSet, TypeValue } from "./types";
+import { contains, getKeyName } from "./utils";
 
 function getAllIntersections(data: TypeSet, collapses: string[][]): Type[][] {
     const matchSet: Type[][] = [];
@@ -83,7 +82,7 @@ function replaceTypesWithType(data: TypeSet, toReplace: Type[], replacer: Type):
 /**
  * this is probably a very slow function. wild amounts of allocations here.
  **/
-function buildTypeFromTypes(types: Type[], config: Config): Type {
+function buildTypeFromTypes(types: Type[], context: Context): Type {
     const common = new Set<string>();
     types.forEach(t => {
         Object.
@@ -121,20 +120,20 @@ function buildTypeFromTypes(types: Type[], config: Config): Type {
         type.properties[d] = typeValues;
     }
 
-    type.displayName = getName(getKeyName(type.properties), config, type);
+    type.displayName = context.namer.getName(getKeyName(type.properties), type);
     return type;
 }
 
-export function collapse(data: TypeSet, config: Config): void {
+export function collapse(data: TypeSet, context: Context): void {
     // simple algo
     // 1. find all matches per collapse
     // 2. find all references to every collapse and make it into 1.
     // 3. make a new type and delete the old ones.
 
-    const intersections = getAllIntersections(data, config.collapse);
+    const intersections = getAllIntersections(data, context.config.collapse);
 
     for (const types of intersections) {
-        const combinedType = buildTypeFromTypes(types, config);
+        const combinedType = buildTypeFromTypes(types, context);
         const keyName = getKeyName(combinedType.properties);
 
         replaceTypesWithType(data, types, combinedType);

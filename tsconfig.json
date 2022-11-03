@@ -1,4 +1,8 @@
 {
+    "exclude": [
+        "src/test/config.*",
+        "src/test/no-config.*",
+    ],
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig to read more about this file */
 

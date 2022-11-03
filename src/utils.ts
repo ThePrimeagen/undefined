@@ -31,49 +31,54 @@ export function contains(obj: Type, properties: string[]): {match: boolean, exac
     };
 }
 
-export function getDisplayName(keyName: string, config: Config, type: Type): string | undefined {
-    const keys = Object.keys(type.properties);
-    for (const nameConfig of config.names) {
-        if (keys.length !== nameConfig.props.length && nameConfig.exact) {
-            continue;
+export class Name {
+    private count = 0;
+    private keyNameToName: Map<string, string> = new Map();
+    constructor(private config: Config) {}
+
+    getDisplayName(keyName: string, type: Type): string | undefined {
+        const keys = Object.keys(type.properties);
+        for (const nameConfig of this.config.names) {
+            if (keys.length !== nameConfig.props.length && nameConfig.exact) {
+                continue;
+            }
+
+            let common = true;
+            for (let i = 0; common && i < nameConfig.props.length; ++i) {
+                common = nameConfig.props[i] in type.properties;
+            }
+
+            if (common) {
+                this.keyNameToName.set(keyName, nameConfig.name);
+                return nameConfig.name;
+            }
         }
 
-        let common = true;
-        for (let i = 0; common && i < nameConfig.props.length; ++i) {
-            common = nameConfig.props[i] in type.properties;
-        }
-
-        if (common) {
-            keyNameToName.set(keyName, nameConfig.name);
-            return nameConfig.name;
-        }
+        return undefined;
     }
 
-    return undefined;
-}
 
+    getName(keyName: string, t: Type): string {
+        const value = this.keyNameToName.get(keyName);
+        if (value) {
+            return value;
+        }
+
+        const displayName = this.getDisplayName(keyName, t);
+        if (displayName) {
+            this.keyNameToName.set(keyName, displayName);
+            return displayName;
+        }
+
+        const name = this.config.nameBase + ++this.count;
+        if (this.config.traces.length && this.config.traces.includes(name)) {
+            Logger.trace("minting", name, "for", t);
+        }
+        this.keyNameToName.set(keyName, name);
+        return name;
+    }
+}
 export function getKeyName(obj: object): string {
     return Object.keys(obj).sort().join("");
 }
 
-let count = 0;
-const keyNameToName: Map<string, string> = new Map();
-export function getName(keyName: string, config: Config, t: Type): string {
-    const value = keyNameToName.get(keyName);
-    if (value) {
-        return value;
-    }
-
-    const displayName = getDisplayName(keyName, config, t);
-    if (displayName) {
-        keyNameToName.set(keyName, displayName);
-        return displayName;
-    }
-
-    const name = config.nameBase + ++count;
-    if (config.traces.length && config.traces.includes(name)) {
-        Logger.trace("minting", name, "for", t);
-    }
-    keyNameToName.set(keyName, name);
-    return name;
-}
