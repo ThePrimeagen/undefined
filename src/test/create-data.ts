@@ -33,7 +33,7 @@ export const jsons = [
     {
         _okAgainBar: "",
         okAgain: "prop",
-        bar: "i needed one more string only bar"
+        bar: "i needed one more string only bar",
     },
 
     {
@@ -45,12 +45,13 @@ export const jsons = [
 
     {
         _lithiumBarThat: "",
-        lithium: "I needed a lithium data point so i can have 2 lith + bar unions",
+        lithium:
+            "I needed a lithium data point so i can have 2 lith + bar unions",
         bar: "There we go, we are at 4 now",
         that: 69,
     },
-]
+];
 
 if (require.main === module) {
-    jsons.forEach(x => console.log(JSON.stringify(x)));
+    jsons.forEach((x) => console.log(JSON.stringify(x)));
 }

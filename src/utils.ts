@@ -1,6 +1,6 @@
-import { Type } from "./types";
-import { Config } from "./config";
-import { Logger } from "./logger";
+import type { Config } from "./config.js";
+import { Logger } from "./logger.js";
+import type { Type } from "./types.js";
 
 export function makeName(name: string): string {
     return name.substring(0, 1).toUpperCase() + name.substring(1);
@@ -12,9 +12,13 @@ export function makeName(name: string): string {
  * if it has all the properties it is a match
  * if it has all the properties _AND_ it has _ONLY_ those properties, it is an exact match
  */
-export function contains(obj: Type, properties: string[]): {match: boolean, exact: boolean} {
+export function contains(
+    obj: Type,
+    properties: string[],
+): { match: boolean; exact: boolean } {
     let contains = true;
     for (let i = 0; contains && i < properties.length; ++i) {
+        // @ts-ignore
         contains = properties[i] in obj.properties;
     }
 
@@ -45,6 +49,7 @@ export class Name {
 
             let common = true;
             for (let i = 0; common && i < nameConfig.props.length; ++i) {
+                // @ts-ignore
                 common = nameConfig.props[i] in type.properties;
             }
 
@@ -56,7 +61,6 @@ export class Name {
 
         return undefined;
     }
-
 
     getName(keyName: string, t: Type): string {
         const value = this.keyNameToName.get(keyName);
@@ -81,4 +85,3 @@ export class Name {
 export function getKeyName(obj: object): string {
     return Object.keys(obj).sort().join("");
 }
-

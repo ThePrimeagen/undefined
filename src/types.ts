@@ -1,24 +1,23 @@
-
 // TODO: There is this whole recursive definition issue that i suck at
 // typescript trying to make.  I could literally make this in rust in no
 // time....... i hate my choices some times.
 
-import { Config } from "./config";
-import { EnumKeys } from "./enum";
+import type { Config } from "./config";
+import type { EnumKeys } from "./enum";
 import { Logger } from "./logger";
 import { getKeyName, Name } from "./utils";
 
 export type TypeValue = string | string[];
 
 export type TypeProperties = {
-    [key: string]: TypeValue[],
-}
+    [key: string]: TypeValue[];
+};
 
 export type Type = {
-    displayName: string,
-    unions: string[],
-    properties: TypeProperties,
-}
+    displayName: string;
+    unions: string[];
+    properties: TypeProperties;
+};
 
 export type NamedTypeProperty = {
     name: string;
@@ -29,32 +28,38 @@ export type NamedTypeProperty = {
 
 export type TypeSet = Map<string, Type>;
 
-export type Union = Map<string, NamedTypeProperty>
+export type Union = Map<string, NamedTypeProperty>;
 
-export type Data = {[key: string]: unknown};
+export type Data = { [key: string]: unknown };
 export type DataSet = Data[];
 export type EnumSet = [string, EnumKeys][];
 export type Context = {
-    config: Config,
-    data: DataSet,
-    typeSet: TypeSet,
-    namer: Name,
-    unions: Union,
-    enums: EnumSet,
+    config: Config;
+    data: DataSet;
+    typeSet: TypeSet;
+    namer: Name;
+    unions: Union;
+    enums: EnumSet;
 };
 
-function arrayTypeToString(arr: (string | string[])[], current: {[key: string]: boolean} = {}, sub: boolean = false): string {
-    const out: string[] = [];
+function arrayTypeToString(
+    arr: (string | string[])[],
+    current: { [key: string]: boolean } = {},
+    sub: boolean = false,
+): string {
+    const out: string[] = new Array();
     for (let i = 0; i < arr.length; ++i) {
         const value = arr[i];
-        if (Array.isArray(value)) {
-            const types = arrayTypeToString(value, current, true);
-            if (types) {
-                out.push(types);
+        if (value) {
+            if (Array.isArray(value)) {
+                const types = arrayTypeToString(value, current, true);
+                if (types) {
+                    out.push(types);
+                }
+            } else if (!current[value]) {
+                current[value] = true;
+                out.push(value);
             }
-        } else if (!current[value]) {
-            current[value] = true;
-            out.push(value);
         }
     }
 
@@ -66,7 +71,10 @@ function arrayTypeToString(arr: (string | string[])[], current: {[key: string]: 
         if (sub) {
             return `${out[0]}[]`;
         }
-        return out[0];
+
+        if (out[0]) {
+            return out[0];
+        }
     }
 
     return "";
@@ -79,12 +87,18 @@ export function unionName(name: string): string {
     return `${name}Union`;
 }
 
-function stringUnions(type: Type, unions: Union, connectingAmp: boolean = true): string {
+function stringUnions(
+    type: Type,
+    unions: Union,
+    connectingAmp: boolean = true,
+): string {
     if (type.unions.length === 0) {
         return "";
     }
 
-    return `${type.unions.map(u => unionName(unions.get(u)?.name as string)).join(" & ")} ${connectingAmp ? "& " : ""}`;
+    return `${type.unions
+        .map((u) => unionName(unions.get(u)?.name as string))
+        .join(" & ")} ${connectingAmp ? "& " : ""}`;
 }
 
 function removeUndefined(typeValue: TypeValue[]): boolean {
@@ -107,7 +121,7 @@ export function typeToString(context: Context): string {
     const keyNameToType = context.typeSet;
     const config = context.config;
 
-    const out: string[] = [];
+    const out: string[] = new Array();
     const exportStr = context.config.export ? "export " : "";
     let ident = "";
 
@@ -124,7 +138,7 @@ export function typeToString(context: Context): string {
     }
 
     for (const v of unions.values()) {
-        const {properties, name, combinedUnion, useName} = v;
+        const { properties, name, combinedUnion, useName } = v;
         const uName = useName ? name : unionName(name);
 
         if (properties) {
@@ -134,16 +148,29 @@ export function typeToString(context: Context): string {
 
             for (let i = 0; i < keys.length; ++i) {
                 const k = keys[i];
-                const types = properties[k];
-                const nullable = removeUndefined(types);
+                if (k) {
+                    const types = properties[k];
 
-                push(`    ${k}${nullable ? "?" : ""}: ${arrayTypeToString(types)};`);
+                    if (types) {
+                        const nullable = removeUndefined(types);
+
+                        push(
+                            `    ${k}${
+                                nullable ? "?" : ""
+                            }: ${arrayTypeToString(types)};`,
+                        );
+                    }
+                }
             }
 
             push("}");
         } else if (combinedUnion) {
             // TODO: There are several things wrong here
-            push(`${exportStr}type ${uName} = ${combinedUnion.map(x => useName ? x : unionName(x)).join(" & ")}`);
+            push(
+                `${exportStr}type ${uName} = ${combinedUnion
+                    .map((x) => (useName ? x : unionName(x)))
+                    .join(" & ")}`,
+            );
         }
         newline();
     }
@@ -155,41 +182,67 @@ export function typeToString(context: Context): string {
             Logger.trace("creating object", v.displayName, v);
         }
         if (keys.length === 0 && v.unions.length > 0) {
-            push(`${exportStr}type ${v.displayName} = ${stringUnions(v, unions, false)};`);
+            push(
+                `${exportStr}type ${v.displayName} = ${stringUnions(
+                    v,
+                    unions,
+                    false,
+                )};`,
+            );
         } else if (keys.length === 0) {
             push(`${exportStr}type ${v.displayName} = Record<string, never>;`);
         } else {
-            push(`${exportStr}type ${v.displayName} = ${stringUnions(v, unions)} {`);
+            push(
+                `${exportStr}type ${v.displayName} = ${stringUnions(
+                    v,
+                    unions,
+                )} {`,
+            );
             for (let i = 0; i < keys.length; ++i) {
                 const k = keys[i];
-                const types = v.properties[k];
-                const nullable = removeUndefined(types);
 
-                push(`    ${k}${nullable ? "?" : ""}: ${arrayTypeToString(types)};`);
+                if (k) {
+                    const types = v.properties[k];
+
+                    if (types) {
+                        const nullable = removeUndefined(types);
+                        push(
+                            `    ${k}${
+                                nullable ? "?" : ""
+                            }: ${arrayTypeToString(types)};`,
+                        );
+                    }
+                }
             }
 
-            push(`}`);
+            push("}");
         }
         newline();
-    };
+    }
 
     if (context.config.declareModule) {
-        out.push(`}`);
+        out.push("}");
     }
 
     return out.join("\n");
 }
 
 function isPrimitive(typeofValue: string): boolean {
-    return typeofValue === "number" ||
+    return (
+        typeofValue === "number" ||
         typeofValue === "string" ||
-        typeofValue === "boolean";
+        typeofValue === "boolean"
+    );
 }
 
-function insertKeyValue(obj: Type, key: string, value: string | string[]): void {
+function insertKeyValue(
+    obj: Type,
+    key: string,
+    value: string | string[],
+): void {
     let props = obj.properties[key];
     if (!props) {
-        props = obj.properties[key] = [];
+        props = obj.properties[key] = new Array();
     }
 
     if (Array.isArray(value) || !props.includes(value)) {
@@ -216,17 +269,18 @@ function getObj(keyNameToType: TypeSet, key: string): Type {
 
 // this might be a thing?
 function handleArray(context: Context, items: any[]): (string | string[])[] {
-    const out: (string | string[])[] = [];
+    const out: (string | string[])[] = new Array();
     for (let i = 0; i < items.length; ++i) {
         const item = items[i];
         const type = typeof item;
         let name: string | string[] = type;
 
-        if (item === null) {
-            name = "null";
-        } else if (Array.isArray(item)) {
+        if (Array.isArray(item)) {
             // TODO: Rename this
-            const okThisTypeSucksAndIDontKnowHowToFixIt = handleArray(context, item);
+            const okThisTypeSucksAndIDontKnowHowToFixIt = handleArray(
+                context,
+                item,
+            );
 
             // @ts-ignore
             name = okThisTypeSucksAndIDontKnowHowToFixIt;
@@ -242,7 +296,7 @@ function handleArray(context: Context, items: any[]): (string | string[])[] {
     return out;
 }
 
-type StringToUnknown = {[key: string]: unknown};
+type StringToUnknown = { [key: string]: unknown };
 
 export function typeObject(context: Context, obj: StringToUnknown): string {
     const keyNameToType = context.typeSet;
@@ -252,20 +306,26 @@ export function typeObject(context: Context, obj: StringToUnknown): string {
 
     for (let i = 0; i < keys.length; ++i) {
         const k = keys[i];
-        const value = obj[k];
-        const typeOf = typeof value;
+        if (k) {
+            const value = obj[k];
+            const typeOf = typeof value;
 
-        if (isPrimitive(typeOf)) {
-            insertKeyValue(typeObj, k, typeOf);
-        } else if (value === null) {
-            insertKeyValue(typeObj, k, "null");
-        } else if (Array.isArray(value)) {
-            const valueToInsert = handleArray(context, value);
+            if (isPrimitive(typeOf)) {
+                insertKeyValue(typeObj, k, typeOf);
+            } else if (value === null) {
+                insertKeyValue(typeObj, k, "null");
+            } else if (Array.isArray(value)) {
+                const valueToInsert = handleArray(context, value);
 
-            // @ts-ignore type issue, OH NO
-            insertKeyValue(typeObj, k, valueToInsert);
-        } else {
-            insertKeyValue(typeObj, k, typeObject(context, value as StringToUnknown));
+                // @ts-ignore type issue, OH NO
+                insertKeyValue(typeObj, k, valueToInsert);
+            } else {
+                insertKeyValue(
+                    typeObj,
+                    k,
+                    typeObject(context, value as StringToUnknown),
+                );
+            }
         }
     }
 

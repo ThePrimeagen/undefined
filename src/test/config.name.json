@@ -1,13 +1,14 @@
 {
-    "names": [{
-        "name": "FlexMeDaddy",
-        "exact": false,
-        "props": ["bar", "buzz"]
-    }, {
-        "name": "ThisOneWont",
-        "exact": true,
-        "props": ["lithium"]
-    }]
+    "names": [
+        {
+            "name": "FlexMeDaddy",
+            "exact": false,
+            "props": ["bar", "buzz"]
+        },
+        {
+            "name": "ThisOneWont",
+            "exact": true,
+            "props": ["lithium"]
+        }
+    ]
 }
-
-

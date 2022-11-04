@@ -1,14 +1,12 @@
-import { Context, Type, TypeSet, TypeValue } from "./types";
+import type { Context, Type, TypeSet, TypeValue } from "./types";
 import { contains, getKeyName } from "./utils";
 
 function getAllIntersections(data: TypeSet, collapses: string[][]): Type[][] {
-    const matchSet: Type[][] = [];
+    const matchSet: Type[][] = new Array();
     for (const collapse of collapses) {
-        const matches = []
+        const matches = [];
         for (const type of data.values()) {
-            const {
-                match,
-            } = contains(type, collapse);
+            const { match } = contains(type, collapse);
 
             if (match) {
                 matches.push(type);
@@ -22,7 +20,7 @@ function getAllIntersections(data: TypeSet, collapses: string[][]): Type[][] {
 }
 
 function createTypeValue(types: Type[], property: string): TypeValue[] {
-    const typeValues: TypeValue[] = [];
+    const typeValues: TypeValue[] = new Array();
     for (const t of types) {
         const prop = t.properties[property] as TypeValue[];
         if (!prop) {
@@ -30,7 +28,6 @@ function createTypeValue(types: Type[], property: string): TypeValue[] {
         }
 
         for (const propType of prop) {
-
             // worried a bit about [string] and [string]
             // TODO: likely requires a bit more complex handling here
             if (!typeValues.includes(propType)) {
@@ -42,7 +39,11 @@ function createTypeValue(types: Type[], property: string): TypeValue[] {
     return typeValues;
 }
 
-function findAndReplaceDeep(value: TypeValue[], toReplace: string[], replaceWith: string): void {
+function findAndReplaceDeep(
+    value: TypeValue[],
+    toReplace: string[],
+    replaceWith: string,
+): void {
     value.forEach((v, i) => {
         if (Array.isArray(v)) {
             findAndReplaceDeep(v, toReplace, replaceWith);
@@ -54,9 +55,13 @@ function findAndReplaceDeep(value: TypeValue[], toReplace: string[], replaceWith
     });
 }
 
-function replaceTypesWithType(data: TypeSet, toReplace: Type[], replacer: Type): void {
-    const toDelete: string[] = [];
-    const toReplaceNames = toReplace.map(t => t.displayName);
+function replaceTypesWithType(
+    data: TypeSet,
+    toReplace: Type[],
+    replacer: Type,
+): void {
+    const toDelete: string[] = new Array();
+    const toReplaceNames = toReplace.map((t) => t.displayName);
     const replaceWith = replacer.displayName;
 
     for (const [k, t] of data.entries()) {
@@ -64,7 +69,7 @@ function replaceTypesWithType(data: TypeSet, toReplace: Type[], replacer: Type):
             continue;
         }
 
-        if (toReplace.some(x => x === t)) {
+        if (toReplace.some((x) => x === t)) {
             toDelete.push(k);
         }
 
@@ -74,7 +79,7 @@ function replaceTypesWithType(data: TypeSet, toReplace: Type[], replacer: Type):
         }
     }
 
-    toDelete.forEach(d => {
+    toDelete.forEach((d) => {
         data.delete(d);
     });
 }
@@ -84,14 +89,12 @@ function replaceTypesWithType(data: TypeSet, toReplace: Type[], replacer: Type):
  **/
 function buildTypeFromTypes(types: Type[], context: Context): Type {
     const common = new Set<string>();
-    types.forEach(t => {
-        Object.
-            keys(t.properties).
-            forEach(k => common.add(k))
+    types.forEach((t) => {
+        Object.keys(t.properties).forEach((k) => common.add(k));
     });
 
     const different = new Set<string>();
-    types.forEach(t => {
+    types.forEach((t) => {
         const commonKeys = [...common.keys()];
         for (const k of commonKeys) {
             if (!(k in t.properties)) {
@@ -104,7 +107,7 @@ function buildTypeFromTypes(types: Type[], context: Context): Type {
     const type: Type = {
         displayName: "",
         unions: [],
-        properties: {}
+        properties: {},
     };
 
     for (const c of common.values()) {
@@ -143,4 +146,3 @@ export function collapse(context: Context): void {
         data.set(keyName, combinedType);
     }
 }
-

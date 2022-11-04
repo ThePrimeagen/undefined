@@ -1,10 +1,11 @@
 import { collapse } from "./collapse";
-import { Config } from "./config";
+import type { Config } from "./config";
 import { determineEnum, stringifyEnum, updateAllEnumReferences } from "./enum";
-import { Context, Data, DataSet, EnumSet, Type, typeObject, typeToString } from "./types";
+import { sumTypes } from "./sum-types";
+import type { Context, Data, DataSet, EnumSet, Type } from "./types";
+import { typeObject, typeToString } from "./types";
 import { unionize } from "./unions";
 import { makeName, Name } from "./utils";
-import { sumTypes } from "./sum-types";
 
 // TODO: Merge context and undefined
 export function undefinedRun(data: DataSet, config: Config): Context {
@@ -17,7 +18,7 @@ export function undefinedRun(data: DataSet, config: Config): Context {
 
         // default values
         unions: new Map(),
-        enums: [],
+        enums: new Array(),
     };
 
     // TODO: My mother would even be upset
@@ -36,16 +37,20 @@ export function undefinedRun(data: DataSet, config: Config): Context {
     // level abstraction that allows for types and enums to exist under one
     // key.  effectively, TypeSet needs to be a key into a context object
 
-    const enums: EnumSet = [ ];
+    const enums: EnumSet = new Array();
 
     for (let i = 0; i < config.enums.length; ++i) {
         const enumItem = config.enums[i];
-        const enumKeys = determineEnum(data, enumItem);
-        const enumName = makeName(enumItem);
-        updateAllEnumReferences(typeSet, enumItem, enumName);
 
-        enums.push([enumName, enumKeys]);
+        if (enumItem) {
+            const enumKeys = determineEnum(data, enumItem);
+            const enumName = makeName(enumItem);
+            updateAllEnumReferences(typeSet, enumItem, enumName);
+
+            enums.push([enumName, enumKeys]);
+        }
     }
+
     context.enums = enums;
 
     collapse(context);
@@ -57,13 +62,14 @@ export function undefinedRun(data: DataSet, config: Config): Context {
 
 // TODO: the separation of context vs Undefined sucks...
 export function stringify(context: Context): string {
-    const out = [];
+    const out = new Array();
     for (const enumData of context.enums) {
-        out.push(stringifyEnum(context, enumData[0], enumData[1]));
-        out.push("");
+        if (enumData[0]) {
+            out.push(stringifyEnum(context, enumData[0], enumData[1]));
+            out.push("");
+        }
     }
 
     out.push(typeToString(context));
     return out.join("\n");
 }
-
