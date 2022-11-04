@@ -1,5 +1,4 @@
 {
-    "declareModule": "foobar",
-    "export": true
+	"declareModule": "foobar",
+	"export": true
 }
-

@@ -1,5 +1,4 @@
 import fs from "fs";
-import { Config } from "./config";
 
 export default function getData<T extends object>(file: string): T[] {
     if (!file) {
