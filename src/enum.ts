@@ -5,47 +5,47 @@ export type EnumKeys = (string | number)[];
 type DataShape = { [key: string]: unknown };
 
 export function determineEnum(data: DataShape[], key: string): EnumKeys {
-	const found: EnumKeys = new Array();
-	data.forEach((x) => {
-		if (key in x) {
-			const value = x[key];
-			if (typeof value !== "string" && typeof value !== "number") {
-				throw new Error(`Cannot make an enum out of key ${key}`);
-			}
+    const found: EnumKeys = new Array();
+    data.forEach((x) => {
+        if (key in x) {
+            const value = x[key];
+            if (typeof value !== "string" && typeof value !== "number") {
+                throw new Error(`Cannot make an enum out of key ${key}`);
+            }
 
-			if (!found.includes(value)) {
-				found.push(value);
-			}
-		}
-	});
+            if (!found.includes(value)) {
+                found.push(value);
+            }
+        }
+    });
 
-	return found;
+    return found;
 }
 
 export function stringifyEnum(
-	context: Context,
-	name: string,
-	keys: EnumKeys
+    context: Context,
+    name: string,
+    keys: EnumKeys,
 ): string {
-	const out = new Array();
+    const out = new Array();
 
-	out.push(`${context.config.export ? "export " : ""}enum ${name} {`);
-	for (let i = 0; i < keys.length; ++i) {
-		out.push(`    ${makeName(keys[i] as string)} = "${keys[i]}",`);
-	}
-	out.push("}");
+    out.push(`${context.config.export ? "export " : ""}enum ${name} {`);
+    for (let i = 0; i < keys.length; ++i) {
+        out.push(`    ${makeName(keys[i] as string)} = "${keys[i]}",`);
+    }
+    out.push("}");
 
-	return out.join("\n");
+    return out.join("\n");
 }
 
 export function updateAllEnumReferences(
-	data: Map<string, Type>,
-	keyName: string,
-	enumName: string
+    data: Map<string, Type>,
+    keyName: string,
+    enumName: string,
 ): void {
-	data.forEach((v) => {
-		if (keyName in v.properties) {
-			v.properties[keyName] = [enumName];
-		}
-	});
+    data.forEach((v) => {
+        if (keyName in v.properties) {
+            v.properties[keyName] = [enumName];
+        }
+    });
 }
