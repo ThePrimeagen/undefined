@@ -1,4 +1,4 @@
-import { Context } from "./types";
+import type { Context } from "./types";
 import { contains } from "./utils";
 
 function sumTypeKey(keys: string[]): string {
@@ -13,7 +13,7 @@ export function sumTypes(context: Context): void {
 
     for (const [name, st] of Object.entries(sumTypes)) {
 
-        const types = [];
+        const types = new Array();
         for (const t of context.typeSet.values()) {
             if (contains(t, st).match) {
                 types.push(t);
