@@ -25,6 +25,7 @@ export function sumTypes(context: Context): void {
                 name: name,
                 combinedUnion: types.map(x => x.displayName),
                 useName: true,
+                connectWith: "|",
             });
         }
     }
