@@ -25,6 +25,7 @@ export type NamedTypeProperty = {
     properties?: TypeProperties;
     combinedUnion?: string[];
     useName?: boolean;
+    connectWith?: "|" | "&";
 };
 
 export type TypeSet = Map<string, Type>;
@@ -102,6 +103,20 @@ function removeUndefined(typeValue: TypeValue[]): boolean {
     return found;
 }
 
+export function declareModule(context: Context): string {
+    if (context.config.declareModule) {
+        return `declare module "${context.config.declareModule}" {`;
+    }
+    return "";
+}
+
+export function closeDeclareModule(context: Context): string {
+    if (context.config.declareModule) {
+        return `}`;
+    }
+    return "";
+}
+
 export function typeToString(context: Context): string {
     const unions = context.unions;
     const keyNameToType = context.typeSet;
@@ -109,12 +124,7 @@ export function typeToString(context: Context): string {
 
     const out: string[] = [];
     const exportStr = context.config.export ? "export " : "";
-    let ident = "";
-
-    if (context.config.declareModule) {
-        ident = "    ";
-        out.push(`declare module "${context.config.declareModule}" {`);
-    }
+    const ident = context.config.declareModule ? "    " : "";
 
     function push(str: string): void {
         out.push(`${ident}${str}`);
@@ -142,8 +152,10 @@ export function typeToString(context: Context): string {
 
             push("}");
         } else if (combinedUnion) {
+            const connectWith = v.connectWith || "&";
+
             // TODO: There are several things wrong here
-            push(`${exportStr}type ${uName} = ${combinedUnion.map(x => useName ? x : unionName(x)).join(" & ")}`);
+            push(`${exportStr}type ${uName} = ${combinedUnion.map(x => useName ? x : unionName(x)).join(` ${connectWith} `)}`);
         }
         newline();
     }
@@ -172,10 +184,6 @@ export function typeToString(context: Context): string {
         }
         newline();
     };
-
-    if (context.config.declareModule) {
-        out.push(`}`);
-    }
 
     return out.join("\n");
 }

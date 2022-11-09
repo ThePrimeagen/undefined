@@ -1,0 +1,18 @@
+#!/usr/bin/env node
+
+const fs = require("fs");
+const path = require("path");
+const execSync = require("child_process").execSync;
+
+const config = JSON.
+    parse(fs.readFileSync(path.join(__dirname, "src", "test", "config.json")).toString()).config;
+
+
+for (let i = 0; i < config.length; ++i) {
+    const c = config[i];
+    console.log("generating", c);
+    execSync(`npx ts-node src/test/create-data.ts | npx ts-node src/undefined.ts -c ${c.config} | tee ${c.results}`);
+}
+
+
+

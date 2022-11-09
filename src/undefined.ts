@@ -1,5 +1,5 @@
 import getData from "./file";
-import { getConfig } from "./config";
+import getConfig from "./config";
 import { stringify, undefinedRun } from "./undefined-runner";
 import { Data } from "./types";
 

@@ -108,7 +108,7 @@ export function getDefaultConfig(): Config {
     };
 }
 
-export function getConfig(): Config {
+export default function getConfig(): Config {
     const cliArgs = cli(args) as CLIConfig;
 
     if (cliArgs.configFile) {

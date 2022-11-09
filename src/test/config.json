@@ -1,0 +1,22 @@
+{
+    "config": [{
+        "config": "./src/test/configs/config.collapse.json",
+        "results": "./src/test/results/config.collapse.ts"
+    }, {
+        "config": "./src/test/configs/config.empty.json",
+        "results": "./src/test/results/config.empty.ts"
+    }, {
+        "config": "./src/test/configs/config.empty.2.json",
+        "results": "./src/test/results/config.empty.2.ts"
+    }, {
+        "config": "./src/test/configs/config.name.json",
+        "results": "./src/test/results/config.name.ts"
+    }, {
+        "config": "./src/test/configs/config.export.declare.json",
+        "results": "./src/test/results/config.export.declare.ts"
+    }, {
+        "config": "./src/test/configs/config.sumtype.json",
+        "results": "./src/test/results/config.sumtype.ts"
+    }]
+}
+

@@ -1,7 +1,7 @@
 import { collapse } from "./collapse";
 import { Config } from "./config";
 import { determineEnum, stringifyEnum, updateAllEnumReferences } from "./enum";
-import { Context, Data, DataSet, EnumSet, Type, typeObject, typeToString } from "./types";
+import { closeDeclareModule, Context, Data, DataSet, declareModule, EnumSet, Type, typeObject, typeToString } from "./types";
 import { unionize } from "./unions";
 import { makeName, Name } from "./utils";
 import { sumTypes } from "./sum-types";
@@ -58,12 +58,14 @@ export function undefinedRun(data: DataSet, config: Config): Context {
 // TODO: the separation of context vs Undefined sucks...
 export function stringify(context: Context): string {
     const out = [];
+    out.push(declareModule(context));
     for (const enumData of context.enums) {
         out.push(stringifyEnum(context, enumData[0], enumData[1]));
         out.push("");
     }
 
     out.push(typeToString(context));
+    out.push(closeDeclareModule(context));
     return out.join("\n");
 }
 
