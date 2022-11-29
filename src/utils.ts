@@ -13,8 +13,7 @@ export function getTypeFromValueName(
             break;
         }
     }
-    console.log(obj);
-    console.log("HELP", name);
+
     return name;
 }
 
