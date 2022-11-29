@@ -2,6 +2,19 @@ import { Context, Type } from "./types";
 import { Config, NameProps } from "./config";
 import { Logger } from "./logger";
 
+export function getTypeFromValueName(context: Context, obj: Record<string, unknown>): string | undefined {
+    let name = undefined;
+    for (const key of context.config.typeFromValue) {
+        if (key in obj) {
+            name = obj[key] as string;
+            break;
+        }
+    }
+    console.log(obj);
+    console.log("HELP", name);
+    return name;
+}
+
 export function getDisplayName(context: Context, obj: Record<string, unknown>): string | undefined {
     let hasName = false;
     let name = undefined;
@@ -91,10 +104,8 @@ export class Name {
 }
 
 export function getKeyName(context: Context, obj: Record<string, unknown>): string {
-    const name = getDisplayName(context, obj);
-    if (name) {
-        return name;
-    }
-    return Object.keys(obj).sort().join("");
+    return getDisplayName(context, obj) ||
+        getTypeFromValueName(context, obj) ||
+        Object.keys(obj).sort().join("");
 }
 

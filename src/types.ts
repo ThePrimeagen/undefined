@@ -6,7 +6,7 @@
 import { Config } from "./config";
 import { EnumKeys } from "./enum";
 import { Logger } from "./logger";
-import { getDisplayName, getKeyName, Name } from "./utils";
+import { getDisplayName, getKeyName, getTypeFromValueName, Name } from "./utils";
 
 export type TypeValue = string | string[];
 
@@ -261,6 +261,11 @@ export function typeObject(context: Context, obj: StringToUnknown): string {
         const possibleName = getDisplayName(context, obj);
         if (possibleName) {
             typeObj.displayName = possibleName;
+        }
+
+        const typeName = getTypeFromValueName(context, obj);
+        if (typeName) {
+            typeObj.displayName = typeName;
         }
     }
 

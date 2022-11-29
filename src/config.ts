@@ -12,6 +12,7 @@ export type Config = {
     unions: {[key: string]: string[]},
     traces: string[],
     valueAsType: string[],
+    typeFromValue: string[],
     names: {
         name: string,
         exact: boolean,
@@ -35,6 +36,7 @@ export type TSConfig = {
     }[],
 
     valueAsType?: string[],
+    typeFromValue?: string[],
     enums?: string[];
     nameBase?: string;
     file?: string;
@@ -99,6 +101,7 @@ const defaultConfig = {
     names: [],
     unionCount: UNION_COUNT,
     valueAsType: [],
+    typeFromValue: [],
     file: FILE,
     nameBase: BASE_NAME,
     enums: [],
