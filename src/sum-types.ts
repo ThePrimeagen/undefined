@@ -12,7 +12,6 @@ export function sumTypes(context: Context): void {
     }
 
     for (const [name, st] of Object.entries(sumTypes)) {
-
         const types = [];
         for (const t of context.typeSet.values()) {
             if (contains(t, st).match) {
@@ -23,11 +22,10 @@ export function sumTypes(context: Context): void {
         if (types.length > 0) {
             context.unions.set(sumTypeKey(st), {
                 name: name,
-                combinedUnion: types.map(x => x.displayName),
+                combinedUnion: types.map((x) => x.displayName),
                 useName: true,
                 connectWith: "|",
             });
         }
     }
 }
-

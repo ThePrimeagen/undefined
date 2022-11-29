@@ -1,4 +1,3 @@
-
 // TODO: There is this whole recursive definition issue that i suck at
 // typescript trying to make.  I could literally make this in rust in no
 // time....... i hate my choices some times.
@@ -6,19 +5,24 @@
 import { Config } from "./config";
 import { EnumKeys } from "./enum";
 import { Logger } from "./logger";
-import { getDisplayName, getKeyName, getTypeFromValueName, Name } from "./utils";
+import {
+    getDisplayName,
+    getKeyName,
+    getTypeFromValueName,
+    Name,
+} from "./utils";
 
 export type TypeValue = string | string[];
 
 export type TypeProperties = {
-    [key: string]: TypeValue[],
-}
+    [key: string]: TypeValue[];
+};
 
 export type Type = {
-    displayName: string,
-    unions: string[],
-    properties: TypeProperties,
-}
+    displayName: string;
+    unions: string[];
+    properties: TypeProperties;
+};
 
 export type NamedTypeProperty = {
     name: string;
@@ -30,21 +34,25 @@ export type NamedTypeProperty = {
 
 export type TypeSet = Map<string, Type>;
 
-export type Union = Map<string, NamedTypeProperty>
+export type Union = Map<string, NamedTypeProperty>;
 
-export type Data = {[key: string]: unknown};
+export type Data = { [key: string]: unknown };
 export type DataSet = Data[];
 export type EnumSet = [string, EnumKeys][];
 export type Context = {
-    config: Config,
-    data: DataSet,
-    typeSet: TypeSet,
-    namer: Name,
-    unions: Union,
-    enums: EnumSet,
+    config: Config;
+    data: DataSet;
+    typeSet: TypeSet;
+    namer: Name;
+    unions: Union;
+    enums: EnumSet;
 };
 
-function arrayTypeToString(arr: (string | string[])[], current: {[key: string]: boolean} = {}, sub: boolean = false): string {
+function arrayTypeToString(
+    arr: (string | string[])[],
+    current: { [key: string]: boolean } = {},
+    sub: boolean = false,
+): string {
     const out: string[] = [];
     for (let i = 0; i < arr.length; ++i) {
         const value = arr[i];
@@ -80,12 +88,18 @@ export function unionName(name: string): string {
     return `${name}Union`;
 }
 
-function stringUnions(type: Type, unions: Union, connectingAmp: boolean = true): string {
+function stringUnions(
+    type: Type,
+    unions: Union,
+    connectingAmp: boolean = true,
+): string {
     if (type.unions.length === 0) {
         return "";
     }
 
-    return `${type.unions.map(u => unionName(unions.get(u)?.name as string)).join(" & ")} ${connectingAmp ? "& " : ""}`;
+    return `${type.unions
+        .map((u) => unionName(unions.get(u)?.name as string))
+        .join(" & ")} ${connectingAmp ? "& " : ""}`;
 }
 
 function removeUndefined(typeValue: TypeValue[]): boolean {
@@ -134,7 +148,7 @@ export function typeToString(context: Context): string {
     }
 
     for (const v of unions.values()) {
-        const {properties, name, combinedUnion, useName} = v;
+        const { properties, name, combinedUnion, useName } = v;
         const uName = useName ? name : unionName(name);
 
         if (properties) {
@@ -147,7 +161,11 @@ export function typeToString(context: Context): string {
                 const types = properties[k];
                 const nullable = removeUndefined(types);
 
-                push(`    ${k}${nullable ? "?" : ""}: ${arrayTypeToString(types)};`);
+                push(
+                    `    ${k}${nullable ? "?" : ""}: ${arrayTypeToString(
+                        types,
+                    )};`,
+                );
             }
 
             push("}");
@@ -155,7 +173,11 @@ export function typeToString(context: Context): string {
             const connectWith = v.connectWith || "&";
 
             // TODO: There are several things wrong here
-            push(`${exportStr}type ${uName} = ${combinedUnion.map(x => useName ? x : unionName(x)).join(` ${connectWith} `)}`);
+            push(
+                `${exportStr}type ${uName} = ${combinedUnion
+                    .map((x) => (useName ? x : unionName(x)))
+                    .join(` ${connectWith} `)}`,
+            );
         }
         newline();
     }
@@ -167,34 +189,55 @@ export function typeToString(context: Context): string {
             Logger.trace("creating object", v.displayName, v);
         }
         if (keys.length === 0 && v.unions.length > 0) {
-            push(`${exportStr}type ${v.displayName} = ${stringUnions(v, unions, false)};`);
+            push(
+                `${exportStr}type ${v.displayName} = ${stringUnions(
+                    v,
+                    unions,
+                    false,
+                )};`,
+            );
         } else if (keys.length === 0) {
             push(`${exportStr}type ${v.displayName} = Record<string, never>;`);
         } else {
-            push(`${exportStr}type ${v.displayName} = ${stringUnions(v, unions)} {`);
+            push(
+                `${exportStr}type ${v.displayName} = ${stringUnions(
+                    v,
+                    unions,
+                )} {`,
+            );
             for (let i = 0; i < keys.length; ++i) {
                 const k = keys[i];
                 const types = v.properties[k];
                 const nullable = removeUndefined(types);
 
-                push(`    ${k}${nullable ? "?" : ""}: ${arrayTypeToString(types)};`);
+                push(
+                    `    ${k}${nullable ? "?" : ""}: ${arrayTypeToString(
+                        types,
+                    )};`,
+                );
             }
 
             push(`}`);
         }
         newline();
-    };
+    }
 
     return out.join("\n");
 }
 
 function isPrimitive(typeofValue: string): boolean {
-    return typeofValue === "number" ||
+    return (
+        typeofValue === "number" ||
         typeofValue === "string" ||
-        typeofValue === "boolean";
+        typeofValue === "boolean"
+    );
 }
 
-function insertKeyValue(obj: Type, key: string, value: string | string[]): void {
+function insertKeyValue(
+    obj: Type,
+    key: string,
+    value: string | string[],
+): void {
     let props = obj.properties[key];
     if (!props) {
         props = obj.properties[key] = [];
@@ -234,7 +277,10 @@ function handleArray(context: Context, items: any[]): (string | string[])[] {
             name = "null";
         } else if (Array.isArray(item)) {
             // TODO: Rename this
-            const okThisTypeSucksAndIDontKnowHowToFixIt = handleArray(context, item);
+            const okThisTypeSucksAndIDontKnowHowToFixIt = handleArray(
+                context,
+                item,
+            );
 
             // @ts-ignore
             name = okThisTypeSucksAndIDontKnowHowToFixIt;
@@ -250,7 +296,7 @@ function handleArray(context: Context, items: any[]): (string | string[])[] {
     return out;
 }
 
-type StringToUnknown = {[key: string]: unknown};
+type StringToUnknown = { [key: string]: unknown };
 
 export function typeObject(context: Context, obj: StringToUnknown): string {
     const keyNameToType = context.typeSet;
@@ -274,7 +320,11 @@ export function typeObject(context: Context, obj: StringToUnknown): string {
         const value = obj[k];
         const typeOf = typeof value;
 
-        if (context.config.valueAsType && context.config.valueAsType.includes(k) && typeof value === "string") {
+        if (
+            context.config.valueAsType &&
+            context.config.valueAsType.includes(k) &&
+            typeof value === "string"
+        ) {
             insertKeyValue(typeObj, k, `"${value}"`);
         } else if (isPrimitive(typeOf)) {
             insertKeyValue(typeObj, k, typeOf);
@@ -286,7 +336,11 @@ export function typeObject(context: Context, obj: StringToUnknown): string {
             // @ts-ignore type issue, OH NO
             insertKeyValue(typeObj, k, valueToInsert);
         } else {
-            insertKeyValue(typeObj, k, typeObject(context, value as StringToUnknown));
+            insertKeyValue(
+                typeObj,
+                k,
+                typeObject(context, value as StringToUnknown),
+            );
         }
     }
 

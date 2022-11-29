@@ -13,11 +13,9 @@ function trimNewLine(str: string): string {
 
 export function runTest(config: Config, data: DataSet, expected: string) {
     const undef = undefinedRun(data, config);
-    let expectedValue = fs.
-        readFileSync(path.join(__dirname, expected)).
-        toString();
+    let expectedValue = fs
+        .readFileSync(path.join(__dirname, expected))
+        .toString();
 
     expect(trimNewLine(stringify(undef))).toEqual(trimNewLine(expectedValue));
 }
-
-

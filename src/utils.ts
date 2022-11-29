@@ -2,7 +2,10 @@ import { Context, Type } from "./types";
 import { Config, NameProps } from "./config";
 import { Logger } from "./logger";
 
-export function getTypeFromValueName(context: Context, obj: Record<string, unknown>): string | undefined {
+export function getTypeFromValueName(
+    context: Context,
+    obj: Record<string, unknown>,
+): string | undefined {
     let name = undefined;
     for (const key of context.config.typeFromValue) {
         if (key in obj) {
@@ -15,7 +18,10 @@ export function getTypeFromValueName(context: Context, obj: Record<string, unkno
     return name;
 }
 
-export function getDisplayName(context: Context, obj: Record<string, unknown>): string | undefined {
+export function getDisplayName(
+    context: Context,
+    obj: Record<string, unknown>,
+): string | undefined {
     let hasName = false;
     let name = undefined;
     for (let i = 0; !hasName && i < context.config.names.length; ++i) {
@@ -31,7 +37,6 @@ export function getDisplayName(context: Context, obj: Record<string, unknown>): 
     return name;
 }
 
-
 export function makeName(name: string): string {
     return name.substring(0, 1).toUpperCase() + name.substring(1);
 }
@@ -42,14 +47,18 @@ export function makeName(name: string): string {
  * if it has all the properties it is a match
  * if it has all the properties _AND_ it has _ONLY_ those properties, it is an exact match
  */
-export function objContains(obj: Record<string, unknown>, properties: NameProps): {match: boolean, exact: boolean} {
+export function objContains(
+    obj: Record<string, unknown>,
+    properties: NameProps,
+): { match: boolean; exact: boolean } {
     let contains = true;
     for (let i = 0; contains && i < properties.length; ++i) {
         const property = properties[i];
-        if (typeof property === 'string') {
+        if (typeof property === "string") {
             contains = property in obj;
         } else {
-            contains = property.key in obj && obj[property.key] === property.value;
+            contains =
+                property.key in obj && obj[property.key] === property.value;
         }
     }
 
@@ -65,7 +74,10 @@ export function objContains(obj: Record<string, unknown>, properties: NameProps)
  * if it has all the properties it is a match
  * if it has all the properties _AND_ it has _ONLY_ those properties, it is an exact match
  */
-export function contains(obj: Type, properties: string[]): {match: boolean, exact: boolean} {
+export function contains(
+    obj: Type,
+    properties: string[],
+): { match: boolean; exact: boolean } {
     let contains = true;
     for (let i = 0; contains && i < properties.length; ++i) {
         contains = properties[i] in obj.properties;
@@ -103,9 +115,13 @@ export class Name {
     }
 }
 
-export function getKeyName(context: Context, obj: Record<string, unknown>): string {
-    return getDisplayName(context, obj) ||
+export function getKeyName(
+    context: Context,
+    obj: Record<string, unknown>,
+): string {
+    return (
+        getDisplayName(context, obj) ||
         getTypeFromValueName(context, obj) ||
-        Object.keys(obj).sort().join("");
+        Object.keys(obj).sort().join("")
+    );
 }
-

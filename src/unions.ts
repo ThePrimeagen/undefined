@@ -18,12 +18,12 @@ export type KeyCounts = {
         propKey: string;
         propValue: TypeValue[];
         count: number;
-    }[]
-}
+    }[];
+};
 
 export type UnionDupes = {
     [key: string]: number;
-}
+};
 
 type TypedData = Map<string, Type>;
 
@@ -58,7 +58,10 @@ export function keyDupeCount(data: TypedData): KeyCounts {
     return out;
 }
 
-export function getUnionizableProperties(keyCounts: KeyCounts, config: Config): UnionizeableProperty[] {
+export function getUnionizableProperties(
+    keyCounts: KeyCounts,
+    config: Config,
+): UnionizeableProperty[] {
     const required = config.unionCount;
     const out: UnionizeableProperty[] = [];
 
@@ -92,10 +95,11 @@ type _TreeNode = {
 
 function toStringValue(propValue: TypeValue[]) {
     const copy = propValue.slice(0);
-    const strValues = copy.filter(x => !Array.isArray(x)).sort();
+    const strValues = copy.filter((x) => !Array.isArray(x)).sort();
 
-    const arrValues = copy.filter(x => Array.isArray(x));
-    const additional: string = arrValues.length > 0 ? toStringValue(arrValues) : "";
+    const arrValues = copy.filter((x) => Array.isArray(x));
+    const additional: string =
+        arrValues.length > 0 ? toStringValue(arrValues) : "";
 
     return strValues.join("") + additional;
 }
@@ -107,7 +111,7 @@ function toString(propKey: string, propValue: TypeValue[]): string {
 function unionDupeCount(data: TypedData): UnionDupes {
     const dupes: UnionDupes = {};
     for (const v of data.values()) {
-        v.unions.forEach(u => {
+        v.unions.forEach((u) => {
             if (!dupes[u]) {
                 dupes[u] = 0;
             }
@@ -140,10 +144,14 @@ function combinedUnionName(n1: string, n2: string): string {
 }
 
 // TODO: This is a REALLY SHITTY version of what could be
-function attemptCombine(data: TypedData, unions: Union, config: Config, ignore: string[] = []): [boolean, string[]] {
-
+function attemptCombine(
+    data: TypedData,
+    unions: Union,
+    config: Config,
+    ignore: string[] = [],
+): [boolean, string[]] {
     const dupes = unionDupeCount(data);
-    const highest2: {key: string, count: number}[] = [];
+    const highest2: { key: string; count: number }[] = [];
 
     for (const [key, count] of Object.entries(dupes)) {
         if (ignore.includes(key)) {
@@ -151,14 +159,13 @@ function attemptCombine(data: TypedData, unions: Union, config: Config, ignore: 
         }
 
         if (highest2.length < 2) {
-            highest2.push({key, count});
+            highest2.push({ key, count });
         } else {
             // TODO: I am positive i can do this better
-            let idx = highest2[0].count < highest2[1].count ?
-                0 : 1;
+            let idx = highest2[0].count < highest2[1].count ? 0 : 1;
 
             if (highest2[idx].count < count) {
-                highest2[idx] = {key, count};
+                highest2[idx] = { key, count };
             }
         }
     }
@@ -167,25 +174,18 @@ function attemptCombine(data: TypedData, unions: Union, config: Config, ignore: 
         return [false, []];
     }
 
-    const [
-        keyName1,
-        keyName2,
-    ] = highest2.map(x => x.key);
+    const [keyName1, keyName2] = highest2.map((x) => x.key);
 
-    const [
-        type0Name,
-        type1Name,
-    ] = highest2.map(x => unions.get(x.key)?.name as string);
+    const [type0Name, type1Name] = highest2.map(
+        (x) => unions.get(x.key)?.name as string,
+    );
 
-    const [
-        type0,
-        type1,
-    ] = highest2.map(x => getTypesByUnionKey(data, x.key));
+    const [type0, type1] = highest2.map((x) => getTypesByUnionKey(data, x.key));
 
-    const type0Map = new Map<Type, string>(type0.map(x => [x, keyName1]));
-    const type1Map = new Map<Type, string>(type1.map(x => [x, keyName2]));
+    const type0Map = new Map<Type, string>(type0.map((x) => [x, keyName1]));
+    const type1Map = new Map<Type, string>(type1.map((x) => [x, keyName2]));
 
-    const common = []
+    const common = [];
     for (const t of type0Map.keys()) {
         if (type1Map.has(t)) {
             common.push(t);
@@ -223,13 +223,13 @@ export function unionize(context: Context): void {
     // 1st pass puts every possible single union together.
     // 2nd pass tries to condense
     for (let i = 0; i < unionProps.length; ++i) {
-        const {
-            propKey,
-            propValue,
-        } = unionProps[i];
+        const { propKey, propValue } = unionProps[i];
 
         for (const type of data.values()) {
-            if (propKey in type.properties && isEqual(type.properties[propKey], propValue)) {
+            if (
+                propKey in type.properties &&
+                isEqual(type.properties[propKey], propValue)
+            ) {
                 delete type.properties[propKey];
 
                 const key = toString(propKey, propValue);
@@ -237,7 +237,7 @@ export function unionize(context: Context): void {
                     if (!unions.has(key)) {
                         unions.set(key, {
                             name: propKey,
-                            properties: {[propKey]: propValue},
+                            properties: { [propKey]: propValue },
                         });
                     }
 
@@ -255,7 +255,5 @@ export function unionize(context: Context): void {
             seen = seen.concat(newKeys);
             missCount++;
         }
-
     } while (missCount < 3);
 }
-

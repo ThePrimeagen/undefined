@@ -1,7 +1,17 @@
 import { collapse } from "./collapse";
 import { Config } from "./config";
 import { determineEnum, stringifyEnum, updateAllEnumReferences } from "./enum";
-import { closeDeclareModule, Context, Data, DataSet, declareModule, EnumSet, Type, typeObject, typeToString } from "./types";
+import {
+    closeDeclareModule,
+    Context,
+    Data,
+    DataSet,
+    declareModule,
+    EnumSet,
+    Type,
+    typeObject,
+    typeToString,
+} from "./types";
 import { unionize } from "./unions";
 import { makeName, Name } from "./utils";
 import { sumTypes } from "./sum-types";
@@ -36,7 +46,7 @@ export function undefinedRun(data: DataSet, config: Config): Context {
     // level abstraction that allows for types and enums to exist under one
     // key.  effectively, TypeSet needs to be a key into a context object
 
-    const enums: EnumSet = [ ];
+    const enums: EnumSet = [];
 
     for (let i = 0; i < config.enums.length; ++i) {
         const enumItem = config.enums[i];
@@ -68,4 +78,3 @@ export function stringify(context: Context): string {
     out.push(closeDeclareModule(context));
     return out.join("\n");
 }
-

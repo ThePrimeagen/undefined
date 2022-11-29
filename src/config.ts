@@ -1,7 +1,7 @@
 import fs from "fs";
 import cli from "command-line-args";
 
-export type NameProp = (string | {key: string, value: string | number});
+export type NameProp = string | { key: string; value: string | number };
 export type NameProps = NameProp[];
 
 export type Config = {
@@ -9,43 +9,43 @@ export type Config = {
     enums: string[];
     file: string;
     unionCount: number;
-    unions: {[key: string]: string[]},
-    traces: string[],
-    valueAsType: string[],
-    typeFromValue: string[],
+    unions: { [key: string]: string[] };
+    traces: string[];
+    valueAsType: string[];
+    typeFromValue: string[];
     names: {
-        name: string,
-        exact: boolean,
-        props: NameProps,
-    }[],
-    collapse: string[][],
+        name: string;
+        exact: boolean;
+        props: NameProps;
+    }[];
+    collapse: string[][];
     sumType?: {
-        [key: string]: string[],
-    },
+        [key: string]: string[];
+    };
 
     export?: boolean;
     declareModule?: string;
-}
+};
 
 export type TSConfig = {
-    unions?: {[key: string]: string[]},
+    unions?: { [key: string]: string[] };
     names?: {
-        exact: boolean,
-        props: NameProps,
-        name: string,
-    }[],
+        exact: boolean;
+        props: NameProps;
+        name: string;
+    }[];
 
-    valueAsType?: string[],
-    typeFromValue?: string[],
+    valueAsType?: string[];
+    typeFromValue?: string[];
     enums?: string[];
     nameBase?: string;
     file?: string;
     traces?: string[];
     unionCount?: number;
-    collapse?: string[][],
+    collapse?: string[][];
     sumType?: {
-        [key: string]: string[],
-    },
+        [key: string]: string[];
+    };
 
     export?: boolean;
     declareModule?: string;
@@ -57,44 +57,51 @@ type CLIConfig = {
     file: string;
     configFile: string;
     unionCount: number;
-    traces: string,
-}
+    traces: string;
+};
 
 const BASE_NAME = "BaseName";
 const UNION_COUNT = 4;
 const FILE = "stdin";
 
-const args = [{
-    name: "configFile",
-    type: String,
-    alias: "c",
-    defaultValue: "",
-}, {
-    name: "file",
-    type: String,
-    alias: "f",
-    defaultValue: FILE,
-}, {
-    name: "enums",
-    type: String,
-    alias: "e",
-    defaultValue: "",
-}, {
-    name: "unionCount",
-    type: Number,
-    alias: "u",
-    defaultValue: UNION_COUNT,
-}, {
-    name: "nameBase",
-    type: String,
-    alias: "n",
-    defaultValue: BASE_NAME,
-}, {
-    name: "trace",
-    type: String,
-    alias: "t",
-    defaultValue: "",
-}];
+const args = [
+    {
+        name: "configFile",
+        type: String,
+        alias: "c",
+        defaultValue: "",
+    },
+    {
+        name: "file",
+        type: String,
+        alias: "f",
+        defaultValue: FILE,
+    },
+    {
+        name: "enums",
+        type: String,
+        alias: "e",
+        defaultValue: "",
+    },
+    {
+        name: "unionCount",
+        type: Number,
+        alias: "u",
+        defaultValue: UNION_COUNT,
+    },
+    {
+        name: "nameBase",
+        type: String,
+        alias: "n",
+        defaultValue: BASE_NAME,
+    },
+    {
+        name: "trace",
+        type: String,
+        alias: "t",
+        defaultValue: "",
+    },
+];
 
 const defaultConfig = {
     unions: {},
@@ -121,7 +128,9 @@ export default function getConfig(): Config {
     const cliArgs = cli(args) as CLIConfig;
 
     if (cliArgs.configFile) {
-        const config = JSON.parse(fs.readFileSync(cliArgs.configFile).toString()) as TSConfig;
+        const config = JSON.parse(
+            fs.readFileSync(cliArgs.configFile).toString(),
+        ) as TSConfig;
         return {
             ...defaultConfig,
             ...config,
@@ -141,4 +150,3 @@ export default function getConfig(): Config {
         ...config,
     };
 }
-

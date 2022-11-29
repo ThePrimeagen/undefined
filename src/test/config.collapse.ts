@@ -1,10 +1,10 @@
-type BaseName2 =  {
+type BaseName2 = {
     _lithium: string;
     lithium: string;
-}
+};
 
-type BaseName7 =  {
-    bar: (number | string);
+type BaseName7 = {
+    bar: number | string;
     _lithiumBarThat?: string;
     lithium?: string;
     that?: number;
@@ -16,4 +16,4 @@ type BaseName7 =  {
     iNeededAgain?: string;
     _barBuzz?: string;
     buzz?: number;
-}
+};

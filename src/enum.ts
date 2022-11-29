@@ -2,11 +2,11 @@ import { Context, Type } from "./types";
 import { makeName } from "./utils";
 
 export type EnumKeys = (string | number)[];
-type DataShape = {[key: string]: unknown};
+type DataShape = { [key: string]: unknown };
 
 export function determineEnum(data: DataShape[], key: string): EnumKeys {
     const found: EnumKeys = [];
-    data.forEach(x => {
+    data.forEach((x) => {
         if (key in x) {
             const value = x[key];
             if (typeof value !== "string" && typeof value !== "number") {
@@ -22,7 +22,11 @@ export function determineEnum(data: DataShape[], key: string): EnumKeys {
     return found;
 }
 
-export function stringifyEnum(context: Context, name: string, keys: EnumKeys): string {
+export function stringifyEnum(
+    context: Context,
+    name: string,
+    keys: EnumKeys,
+): string {
     const out = [];
 
     out.push(`${context.config.export ? "export " : ""}enum ${name} {`);
@@ -34,8 +38,12 @@ export function stringifyEnum(context: Context, name: string, keys: EnumKeys): s
     return out.join("\n");
 }
 
-export function updateAllEnumReferences(data: Map<string, Type>, keyName: string, enumName: string): void {
-    data.forEach(v => {
+export function updateAllEnumReferences(
+    data: Map<string, Type>,
+    keyName: string,
+    enumName: string,
+): void {
+    data.forEach((v) => {
         if (keyName in v.properties) {
             v.properties[keyName] = [enumName];
         }
