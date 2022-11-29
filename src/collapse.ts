@@ -120,7 +120,7 @@ function buildTypeFromTypes(types: Type[], context: Context): Type {
         type.properties[d] = typeValues;
     }
 
-    type.displayName = context.namer.getName(getKeyName(type.properties), type);
+    type.displayName = context.namer.getName(getKeyName(context, type.properties), type);
     return type;
 }
 
@@ -136,7 +136,7 @@ export function collapse(context: Context): void {
 
     for (const types of intersections) {
         const combinedType = buildTypeFromTypes(types, context);
-        const keyName = getKeyName(combinedType.properties);
+        const keyName = getKeyName(context, combinedType.properties);
 
         replaceTypesWithType(data, types, combinedType);
 

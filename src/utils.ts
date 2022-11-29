@@ -1,9 +1,49 @@
-import { Type } from "./types";
-import { Config } from "./config";
+import { Context, Type } from "./types";
+import { Config, NameProps } from "./config";
 import { Logger } from "./logger";
+
+export function getDisplayName(context: Context, obj: Record<string, unknown>): string | undefined {
+    let hasName = false;
+    let name = undefined;
+    for (let i = 0; !hasName && i < context.config.names.length; ++i) {
+        const nameConfig = context.config.names[i];
+
+        const res = objContains(obj, nameConfig.props);
+        hasName = res.match && (res.exact || !nameConfig.exact);
+        if (hasName) {
+            name = nameConfig.name;
+        }
+    }
+
+    return name;
+}
+
 
 export function makeName(name: string): string {
     return name.substring(0, 1).toUpperCase() + name.substring(1);
+}
+
+/*
+ * checks to see if an object has all the properties passed in.
+ *
+ * if it has all the properties it is a match
+ * if it has all the properties _AND_ it has _ONLY_ those properties, it is an exact match
+ */
+export function objContains(obj: Record<string, unknown>, properties: NameProps): {match: boolean, exact: boolean} {
+    let contains = true;
+    for (let i = 0; contains && i < properties.length; ++i) {
+        const property = properties[i];
+        if (typeof property === 'string') {
+            contains = property in obj;
+        } else {
+            contains = property.key in obj && obj[property.key] === property.value;
+        }
+    }
+
+    return {
+        match: contains,
+        exact: contains && Object.keys(obj).length === properties.length,
+    };
 }
 
 /*
@@ -18,16 +58,9 @@ export function contains(obj: Type, properties: string[]): {match: boolean, exac
         contains = properties[i] in obj.properties;
     }
 
-    if (contains) {
-        return {
-            match: true,
-            exact: Object.keys(obj.properties).length === properties.length,
-        };
-    }
-
     return {
-        match: false,
-        exact: false,
+        match: contains,
+        exact: contains && Object.keys(obj).length === properties.length,
     };
 }
 
@@ -36,36 +69,14 @@ export class Name {
     private keyNameToName: Map<string, string> = new Map();
     constructor(private config: Config) {}
 
-    getDisplayName(keyName: string, type: Type): string | undefined {
-        const keys = Object.keys(type.properties);
-        for (const nameConfig of this.config.names) {
-            if (keys.length !== nameConfig.props.length && nameConfig.exact) {
-                continue;
-            }
-
-            let common = true;
-            for (let i = 0; common && i < nameConfig.props.length; ++i) {
-                common = nameConfig.props[i] in type.properties;
-            }
-
-            if (common) {
-                this.keyNameToName.set(keyName, nameConfig.name);
-                return nameConfig.name;
-            }
-        }
-
-        return undefined;
-    }
-
-
     getName(keyName: string, t: Type): string {
         const value = this.keyNameToName.get(keyName);
         if (value) {
             return value;
         }
 
-        const displayName = this.getDisplayName(keyName, t);
-        if (displayName) {
+        const displayName = t.displayName;
+        if (displayName !== "") {
             this.keyNameToName.set(keyName, displayName);
             return displayName;
         }
@@ -78,7 +89,12 @@ export class Name {
         return name;
     }
 }
-export function getKeyName(obj: object): string {
+
+export function getKeyName(context: Context, obj: Record<string, unknown>): string {
+    const name = getDisplayName(context, obj);
+    if (name) {
+        return name;
+    }
     return Object.keys(obj).sort().join("");
 }
 

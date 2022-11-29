@@ -233,14 +233,16 @@ export function unionize(context: Context): void {
                 delete type.properties[propKey];
 
                 const key = toString(propKey, propValue);
-                if (!unions.has(key)) {
-                    unions.set(key, {
-                        name: propKey,
-                        properties: {[propKey]: propValue},
-                    });
-                }
+                if (!context.config.valueAsType.includes(propKey)) {
+                    if (!unions.has(key)) {
+                        unions.set(key, {
+                            name: propKey,
+                            properties: {[propKey]: propValue},
+                        });
+                    }
 
-                type.unions.push(key);
+                    type.unions.push(key);
+                }
             }
         }
     }

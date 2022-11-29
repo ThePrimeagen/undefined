@@ -6,7 +6,7 @@
 import { Config } from "./config";
 import { EnumKeys } from "./enum";
 import { Logger } from "./logger";
-import { getKeyName, Name } from "./utils";
+import { getDisplayName, getKeyName, Name } from "./utils";
 
 export type TypeValue = string | string[];
 
@@ -255,15 +255,23 @@ type StringToUnknown = {[key: string]: unknown};
 export function typeObject(context: Context, obj: StringToUnknown): string {
     const keyNameToType = context.typeSet;
     const keys = Object.keys(obj);
-    const keyName = getKeyName(obj);
+    const keyName = getKeyName(context, obj);
     const typeObj = getObj(keyNameToType, keyName);
+    if (typeObj.displayName === "") {
+        const possibleName = getDisplayName(context, obj);
+        if (possibleName) {
+            typeObj.displayName = possibleName;
+        }
+    }
 
     for (let i = 0; i < keys.length; ++i) {
         const k = keys[i];
         const value = obj[k];
         const typeOf = typeof value;
 
-        if (isPrimitive(typeOf)) {
+        if (context.config.valueAsType && context.config.valueAsType.includes(k) && typeof value === "string") {
+            insertKeyValue(typeObj, k, `"${value}"`);
+        } else if (isPrimitive(typeOf)) {
             insertKeyValue(typeObj, k, typeOf);
         } else if (value === null) {
             insertKeyValue(typeObj, k, "null");

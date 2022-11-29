@@ -1,6 +1,9 @@
 import fs from "fs";
 import cli from "command-line-args";
 
+export type NameProp = (string | {key: string, value: string | number});
+export type NameProps = NameProp[];
+
 export type Config = {
     nameBase: string;
     enums: string[];
@@ -8,10 +11,11 @@ export type Config = {
     unionCount: number;
     unions: {[key: string]: string[]},
     traces: string[],
+    valueAsType: string[],
     names: {
         name: string,
         exact: boolean,
-        props: string[],
+        props: NameProps,
     }[],
     collapse: string[][],
     sumType?: {
@@ -26,10 +30,11 @@ export type TSConfig = {
     unions?: {[key: string]: string[]},
     names?: {
         exact: boolean,
-        props: string[],
+        props: NameProps,
         name: string,
     }[],
 
+    valueAsType?: string[],
     enums?: string[];
     nameBase?: string;
     file?: string;
@@ -93,6 +98,7 @@ const defaultConfig = {
     unions: {},
     names: [],
     unionCount: UNION_COUNT,
+    valueAsType: [],
     file: FILE,
     nameBase: BASE_NAME,
     enums: [],
