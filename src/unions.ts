@@ -93,13 +93,17 @@ type _TreeNode = {
 }
 */
 
-function toStringValue(propValue: TypeValue[]) {
+function toStringValue(propValue: TypeValue[] | TypeValue) {
+    if (typeof propValue === "string") {
+        return propValue;
+    }
+
     const copy = propValue.slice(0);
     const strValues = copy.filter((x) => !Array.isArray(x)).sort();
 
     const arrValues = copy.filter((x) => Array.isArray(x));
     const additional: string =
-        arrValues.length > 0 ? toStringValue(arrValues) : "";
+        arrValues.length > 0 ? arrValues.map(toStringValue).join("") : "";
 
     return strValues.join("") + additional;
 }
