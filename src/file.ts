@@ -13,7 +13,11 @@ export default async function getData<T extends object>(file: string): Promise<T
     return new Promise(res => {
         const data: T[] = [];
         rl.on("line", (line) => {
-            data.push(JSON.parse(line));
+            try {
+                data.push(JSON.parse(line));
+            } catch (e) {
+                console.error("skipping line", line, e);
+            }
         })
 
         rl.on("close", () => {
