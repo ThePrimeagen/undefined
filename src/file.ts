@@ -1,15 +1,21 @@
-import fs from "fs";
-import { Config } from "./config";
+import readline from "readline";
+const rl = readline.createInterface({
+    input: process.stdin,
+});
 
-export default function getData<T extends object>(file: string): T[] {
+export default async function getData<T extends object>(file: string): Promise<T[]> {
     if (!file) {
         throw new Error("requires a file to read data from");
     }
 
-    return fs
-        .readFileSync(file === "stdin" ? 0 : file, "utf-8")
-        .toString()
-        .split("\n")
-        .filter((x) => x)
-        .map((x) => JSON.parse(x));
+    return new Promise(res => {
+        const data: T[] = [];
+        rl.on("line", (line) => {
+            data.push(JSON.parse(line));
+        })
+
+        rl.on("close", () => {
+            res(data);
+        });
+    });
 }
