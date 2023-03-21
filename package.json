@@ -5,6 +5,10 @@
     "repository": "https://github.com/ThePrimeagen/undefined",
     "author": "<the.primeagen@gmail.com>",
     "license": "MIT",
+    "files": [
+        "dist/**/*.js",
+        "dist/**/*d.ts"
+    ],
     "dependencies": {
         "command-line-args": "^5.2.1",
         "lodash.isequal": "^4.5.0"
