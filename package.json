@@ -1,6 +1,6 @@
 {
     "name": "@primeagen/undefined",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "main": "dist/src/undefined.js",
     "repository": "https://github.com/ThePrimeagen/undefined",
     "author": "<the.primeagen@gmail.com>",
